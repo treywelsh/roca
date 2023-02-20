@@ -3,13 +3,14 @@
 use serde::Deserialize;
 
 use crate::client::ClientXMLRPC;
+use crate::controller::Controller;
 use crate::template::Template;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct UserController {
-    client: ClientXMLRPC,
-    id: i32,
+pub struct UserController<'a> {
+    pub controller: &'a Controller,
+    pub id: i32,
 }
 
 #[allow(dead_code)]
@@ -32,27 +33,20 @@ pub struct UserData {
 }
 
 #[allow(dead_code)]
-impl UserController {
-    pub fn new(client: ClientXMLRPC, id: i32) -> Self {
-        UserController { client, id }
-    }
-
+impl<'a> UserController<'a> {
     // TODOs:
     // - enum form auth_drv options
     // - more helpers without some options (i.e groups, auth_drv)
     // - add last parameter: array of groups. Currently the client only support Array(Vec<Value>)
-    pub fn allocate(
-        client: &ClientXMLRPC,
-        name: &str,
-        passwd: &str,
-        auth_drv: &str,
-    ) -> Result<i32, String> {
-        let req = client
+    pub fn allocate(&self, name: &str, passwd: &str, auth_drv: &str) -> Result<i32, String> {
+        let req = self
+            .controller
+            .client
             .new_request("one.user.allocate")
             .arg(name)
             .arg(passwd)
             .arg(auth_drv);
-        let response = client.call(req);
+        let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => {
@@ -73,9 +67,13 @@ impl UserController {
         ))
     }
 
-    pub fn delete(client: &ClientXMLRPC, id: i32) -> Result<(), String> {
-        let req = client.new_request("one.user.delete").arg(id);
-        let response = client.call(req);
+    pub fn delete(self, id: i32) -> Result<(), String> {
+        let req = self
+            .controller
+            .client
+            .new_request("one.user.delete")
+            .arg(id);
+        let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => {
@@ -94,9 +92,9 @@ impl UserController {
         }
     }
 
-    pub fn info(&mut self) -> Result<UserData, String> {
-        let req = self.client.new_request("one.user.info").arg(0);
-        let response = self.client.call(req);
+    pub fn info(&self) -> Result<UserData, String> {
+        let req = self.controller.client.new_request("one.user.info").arg(0);
+        let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => match resp.get_str(1) {
@@ -117,8 +115,12 @@ impl UserController {
     }
 
     pub fn passwd(&self, new_passd: i32) -> Result<(), String> {
-        let req = self.client.new_request("one.user.passwd").arg(new_passd);
-        let response = self.client.call(req);
+        let req = self
+            .controller
+            .client
+            .new_request("one.user.passwd")
+            .arg(new_passd);
+        let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => {
@@ -139,13 +141,14 @@ impl UserController {
 
     pub fn login(&self, name: &str, token: &str, period: i32, gid: i32) -> Result<String, String> {
         let req = self
+            .controller
             .client
             .new_request("one.user.login")
             .arg(name)
             .arg(token)
             .arg(period)
             .arg(gid);
-        let response = self.client.call(req);
+        let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => match resp.get_str(1) {
@@ -177,10 +180,10 @@ mod test {
             String::from("oneadmin:opennebula"),
             String::from("http://localhost:2633/RPC2"),
         );
+        let controller = Controller::new(client);
+        let user_controller = controller.user(0);
 
-        let mut user = UserController::new(client, 0);
-
-        match user.info() {
+        match user_controller.info() {
             Ok(infos) => println!("user infos: {:#?}", infos),
             _ => panic!("Error on user info"),
         }
@@ -194,7 +197,10 @@ mod test {
         );
 
         // Create the user
-        let response = UserController::allocate(&client, "test-alloc", "test-alloc", "");
+        let controller = Controller::new(client);
+        let user_controller = controller.user(0);
+
+        let response = user_controller.allocate("test-alloc", "test-alloc", "");
 
         let user_id = match response {
             Ok(id) => id,
@@ -206,7 +212,7 @@ mod test {
         assert!(user_id > 0);
 
         // Delete the user
-        let response = UserController::delete(&client, user_id);
+        let response = user_controller.delete(user_id);
 
         assert_eq!(response, Ok(()));
     }
@@ -217,20 +223,22 @@ mod test {
             String::from("oneadmin:opennebula"),
             String::from("http://localhost:2633/RPC2"),
         );
+        let controller = Controller::new(client);
+        let user_controller = controller.user(0);
 
         // Create the user
         let name = "test-login";
-        let response = UserController::allocate(&client, name, "password", "");
+        let response = user_controller.allocate(name, "password", "");
 
         let user_id = match response {
             Ok(id) => id,
             _ => panic!("Error allocating the user"),
         };
 
-        let user = UserController::new(client, user_id);
+        let user_controller = controller.user(user_id);
 
         // Test loging
-        let response = user.login(name, "", 60, 0);
+        let response = user_controller.login(name, "", 60, 0);
 
         match response {
             Ok(_) => {}
@@ -238,12 +246,7 @@ mod test {
         };
 
         // Delete the user
-        let client = ClientXMLRPC::new(
-            String::from("oneadmin:opennebula"),
-            String::from("http://localhost/RPC2"),
-        );
-
-        let response = UserController::delete(&client, user_id);
+        let response = user_controller.delete(user_id);
 
         assert_eq!(response, Ok(()));
     }

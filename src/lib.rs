@@ -5,5 +5,6 @@
 //! [OpenNebula XML-RPC API]: http://docs.opennebula.org/stable/integration/system_interfaces/api.html
 
 pub mod client;
+pub mod controller;
 pub mod template;
 pub mod user;
