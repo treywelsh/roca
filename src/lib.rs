@@ -4,5 +4,6 @@
 //!
 //! [OpenNebula XML-RPC API]: http://docs.opennebula.org/stable/integration/system_interfaces/api.html
 
-mod client;
-mod user;
+pub mod client;
+pub mod template;
+pub mod user;
