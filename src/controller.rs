@@ -1,18 +1,25 @@
-use crate::client::ClientXMLRPC;
+use crate::client::{ClientXMLRPC, Response};
 use crate::user::UserController;
 
-#[derive(Debug)]
-pub struct Controller {
-    pub client: ClientXMLRPC,
+use xmlrpc::Request;
+
+pub trait RPCCaller {
+    fn new_request<'a>(&self, name: &'a str) -> Request<'a>;
+    fn call(&self, request: Request) -> Result<Response, String>;
 }
 
-impl Controller {
-    pub fn new(client: ClientXMLRPC) -> Self {
+#[derive(Debug)]
+pub struct Controller<C: RPCCaller> {
+    pub client: C,
+}
+
+impl<C: RPCCaller> Controller<C> {
+    pub fn new(client: C) -> Self {
         Controller { client: client }
     }
 
-    pub fn user(&self, id: i32) -> UserController {
-        UserController {
+    pub fn user(&self, id: i32) -> UserController<C> {
+        UserController::<C> {
             controller: self,
             id: id,
         }

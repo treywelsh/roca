@@ -3,13 +3,13 @@
 use serde::Deserialize;
 
 use crate::client::ClientXMLRPC;
-use crate::controller::Controller;
+use crate::controller::{Controller, RPCCaller};
 use crate::template::Template;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct UserController<'a> {
-    pub controller: &'a Controller,
+pub struct UserController<'a, C: RPCCaller> {
+    pub controller: &'a Controller<C>,
     pub id: i32,
 }
 
@@ -33,7 +33,7 @@ pub struct UserData {
 }
 
 #[allow(dead_code)]
-impl<'a> UserController<'a> {
+impl<'a, C: RPCCaller> UserController<'a, C> {
     // TODOs:
     // - enum form auth_drv options
     // - more helpers without some options (i.e groups, auth_drv)
@@ -242,7 +242,7 @@ mod test {
 
         match response {
             Ok(_) => {}
-            Err(e) => panic!(e),
+            Err(e) => panic!("{}", e),
         };
 
         // Delete the user

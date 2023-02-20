@@ -3,6 +3,8 @@
 use xmlrpc;
 use xmlrpc::{Request, Value};
 
+use crate::controller::RPCCaller;
+
 /// Struct for storing Client related information
 #[derive(Debug)]
 pub struct ClientXMLRPC {
@@ -21,15 +23,17 @@ impl ClientXMLRPC {
     pub fn new(auth: String, endpoint: String) -> ClientXMLRPC {
         ClientXMLRPC { auth, endpoint }
     }
+}
 
-    pub fn new_request<'a>(&self, name: &'a str) -> Request<'a> {
+impl RPCCaller for ClientXMLRPC {
+    fn new_request<'a>(&self, name: &'a str) -> Request<'a> {
         Request::new(name).arg(self.auth.clone())
     }
 
     //Try to import https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html
     // if works open a PR
 
-    pub fn call(&self, request: Request) -> Result<Response, String> {
+    fn call(&self, request: Request) -> Result<Response, String> {
         match request.call_url(&self.endpoint) {
             Ok(rc) => Response::new(rc),
             Err(_) => Err(String::from("Cannot contact the server.")),
