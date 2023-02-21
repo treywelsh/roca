@@ -2,7 +2,6 @@
 
 use serde::Deserialize;
 
-use crate::client::ClientXMLRPC;
 use crate::controller::{Controller, RPCCaller};
 use crate::template::Template;
 
@@ -173,6 +172,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
 mod test {
 
     use super::*;
+    use crate::client::ClientXMLRPC;
 
     #[test]
     fn user_info() {

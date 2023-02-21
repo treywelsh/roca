@@ -1,4 +1,4 @@
-use crate::client::{ClientXMLRPC, Response};
+use crate::client::Response;
 use crate::user::UserController;
 
 use xmlrpc::Request;

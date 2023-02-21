@@ -4,7 +4,7 @@
 //!
 //! [OpenNebula XML-RPC API]: http://docs.opennebula.org/stable/integration/system_interfaces/api.html
 
-use serde::de::{self, Deserializer, MapAccess, Visitor};
+use serde::de::{Deserializer, MapAccess, Visitor};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
