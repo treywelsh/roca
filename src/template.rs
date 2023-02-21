@@ -52,11 +52,11 @@ impl<'de> Visitor<'de> for TemplateVisitor {
         let mut map = Template::new();
 
         while let Some(key) = access.next_key::<String>()? {
-            let map_value = access.next_value::<HashMap<String, String>>().unwrap();
+            let mut map_value = access.next_value::<HashMap<String, String>>().unwrap();
 
-            if map_value.contains_key("$text") {
-                map.pairs
-                    .push(Pair(key, map_value.get("$text").unwrap().clone()));
+            let opt_value = map_value.remove("$text");
+            if let Some(value) = opt_value {
+                map.pairs.push(Pair(key, value));
             } else {
                 let mut vector = Vec::new();
                 for (k, v) in map_value {
