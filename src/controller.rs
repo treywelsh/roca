@@ -15,13 +15,13 @@ pub struct Controller<C: RPCCaller> {
 
 impl<C: RPCCaller> Controller<C> {
     pub fn new(client: C) -> Self {
-        Controller { client: client }
+        Controller { client }
     }
 
     pub fn user(&self, id: i32) -> UserController<C> {
         UserController::<C> {
             controller: self,
-            id: id,
+            id,
         }
     }
 }

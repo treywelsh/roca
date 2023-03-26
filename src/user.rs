@@ -1,35 +1,52 @@
 //! The user module allows to interact with OpenNebula users
 
-use serde::Deserialize;
-
+use crate::common::getters::{ResourceInternal, ResourcePublic};
+use crate::common::Template;
+use crate::common::{Errors, Resource, ResourceData};
 use crate::controller::{Controller, RPCCaller};
-use crate::template::Template;
+
+use crate::{getters, group_getters};
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug)] //
 pub struct UserController<'a, C: RPCCaller> {
     pub controller: &'a Controller<C>,
     pub id: i32,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
-pub struct UserData {
-    #[serde(rename = "ID")]
-    id: i32,
-    #[serde(rename = "NAME")]
-    name: String,
-    #[serde(rename = "GID")]
-    gid: i32,
-    #[serde(rename = "GNAME")]
-    gname: String,
-    #[serde(rename = "PASSWORD")]
-    password: String,
-    #[serde(rename = "AUTH_DRIVER")]
-    auth_driver: String,
-    #[serde(rename = "TEMPLATE")]
-    template: Template,
+pub struct User {
+    resource: Resource,
 }
+
+impl ResourceData for User {
+    fn get_data(&self) -> &Resource {
+        &self.resource
+    }
+
+    fn get_type(&self) -> &str {
+        "USER"
+    }
+}
+
+// add get_str, get_i64...
+impl ResourceInternal for User {}
+
+impl ResourcePublic for User {}
+
+impl User {
+    getters!("USER");
+    group_getters!("USER");
+}
+
+//https://docs.opennebula.io/6.4/installation_and_configuration/authentication/overview.html
+// or look at the opennebula terraform provider code
+
+//enum Authentication {
+//    Sunstone,
+//    OpenNebula,
+//    x509,
+//}
 
 #[allow(dead_code)]
 impl<'a, C: RPCCaller> UserController<'a, C> {
@@ -45,9 +62,8 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
             .arg(name)
             .arg(passwd)
             .arg(auth_drv);
-        let response = self.controller.client.call(req);
 
-        match response {
+        match self.controller.client.call(req) {
             Ok(resp) => {
                 if resp.rc() {
                     if let Some(value) = resp.get_int(1) {
@@ -91,15 +107,23 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
         }
     }
 
-    pub fn info(&self) -> Result<UserData, String> {
-        let req = self.controller.client.new_request("one.user.info").arg(0);
+    pub fn info(&self) -> Result<User, String> {
+        let req = self
+            .controller
+            .client
+            .new_request("one.user.info")
+            .arg(self.id);
         let response = self.controller.client.call(req);
 
         match response {
             Ok(resp) => match resp.get_str(1) {
                 Some(body) => {
                     if resp.rc() {
-                        let obj: UserData = quick_xml::de::from_str(&String::from(body)).unwrap();
+                        let resource = match Resource::from(body) {
+                            Ok(r) => r,
+                            Err(e) => return Err(format!("Failed to parse the resource: {}", e)),
+                        };
+                        let obj: User = User { resource };
                         Ok(obj)
                     } else {
                         Err(String::from(body))
@@ -184,7 +208,16 @@ mod test {
         let user_controller = controller.user(0);
 
         match user_controller.info() {
-            Ok(infos) => println!("user infos: {:#?}", infos),
+            Ok(infos) => {
+                println!("user id: {}", infos.id().unwrap());
+                println!("user name: {}", infos.name().unwrap());
+                println!("user GID: {}", infos.gid().unwrap());
+                println!("user GNAME: {}", infos.groupname().unwrap());
+                println!(
+                    "user AUTH_DRIVER: {}",
+                    infos.get_str("AUTH_DRIVER").unwrap()
+                );
+            }
             _ => panic!("Error on user info"),
         }
     }
