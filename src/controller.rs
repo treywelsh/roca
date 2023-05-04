@@ -4,10 +4,12 @@ use crate::user::UserController;
 
 use serde_xmlrpc::Value;
 
+/// RPCCaller is a trait that a XML-RPC client should satisfy to allow the Roca controller to drive it
 pub trait RPCCaller {
     fn call(&self, name: &str, args: Vec<Value>) -> Result<(bool, String), Errors>;
 }
 
+/// The Roca controller allow resource access in a hierachical way
 #[derive(Debug)]
 pub struct Controller<C: RPCCaller> {
     pub client: C,

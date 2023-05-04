@@ -2,6 +2,7 @@ use crate::common::errors::Errors;
 use crate::common::ResourceData;
 use crate::common::Template;
 
+/// ResourceInternal adds default and generic getter methods for internal use (they need a full path of the attribute)
 pub trait ResourceInternal: ResourceData {
     fn _get_str(&self, full_path: &str) -> Result<String, Errors> {
         self.get_data()._get_str(full_path)
@@ -16,6 +17,7 @@ pub trait ResourceInternal: ResourceData {
     }
 }
 
+/// ResourceInternal adds default and generic getter methods for roca user (they only need the attribute name)
 pub trait ResourcePublic: ResourceData {
     fn get_str(&self, name: &str) -> Result<String, Errors> {
         self.get_data().get_str(self.get_type(), name)

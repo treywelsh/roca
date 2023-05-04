@@ -11,6 +11,8 @@ pub mod template_builder;
 
 pub mod getters;
 
+/// ResourceData trait have to be implemented by each resource in order to enable specilization of default
+/// methods defined by ResourceInternal and ResourcePublic traits
 pub trait ResourceData {
     fn get_data(&self) -> &Resource;
     fn get_type(&self) -> &str;
@@ -64,6 +66,7 @@ macro_rules! group_getters {
 //    };
 //}
 
+// Resource add some methods to get XML attributes wrapping the usage of the sxd_xxx crates
 pub struct Resource {
     package: Package,
     //document: Document<'a>,

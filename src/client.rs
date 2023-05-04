@@ -5,12 +5,12 @@ use serde_xmlrpc::Value;
 use crate::common::Errors;
 use crate::controller::RPCCaller;
 
-/// Struct for storing Client related information
+/// The Roca XML-RPC basic client
 #[derive(Debug)]
 pub struct ClientXMLRPC {
     auth: String,
     endpoint: String,
-    // TODO: add http client in a struct, use a trait to abstract the HTTP client
+    // TODO: add http client here and use a trait to abstract the HTTP client
 }
 
 #[allow(dead_code)]
