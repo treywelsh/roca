@@ -7,6 +7,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-xmlrpc = "0.15"
+serde_xmlrpc = "0.1"
 sxd-xpath = "0.4"
 sxd-document = "0.3"
+
+# Used by the default client
+reqwest = { version= "0.11", features = ["blocking"] }

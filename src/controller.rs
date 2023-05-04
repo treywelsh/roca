@@ -1,11 +1,11 @@
-use crate::client::Response;
+//use crate::client::Response;
+use crate::common::Errors;
 use crate::user::UserController;
 
-use xmlrpc::Request;
+use serde_xmlrpc::Value;
 
 pub trait RPCCaller {
-    fn new_request<'a>(&self, name: &'a str) -> Request<'a>;
-    fn call(&self, request: Request) -> Result<Response, String>;
+    fn call(&self, name: &str, args: Vec<Value>) -> Result<(bool, String), Errors>;
 }
 
 #[derive(Debug)]

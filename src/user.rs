@@ -54,140 +54,75 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     // - enum form auth_drv options
     // - more helpers without some options (i.e groups, auth_drv)
     // - add last parameter: array of groups. Currently the client only support Array(Vec<Value>)
-    pub fn allocate(&self, name: &str, passwd: &str, auth_drv: &str) -> Result<i32, String> {
-        let req = self
-            .controller
-            .client
-            .new_request("one.user.allocate")
-            .arg(name)
-            .arg(passwd)
-            .arg(auth_drv);
+    pub fn allocate(&self, name: &str, passwd: &str, auth_drv: &str) -> Result<i32, Errors> {
+        let (success, ret) = self.controller.client.call(
+            "one.user.allocate",
+            vec![name.into(), passwd.into(), auth_drv.into()],
+        )?;
 
-        match self.controller.client.call(req) {
-            Ok(resp) => {
-                if resp.rc() {
-                    if let Some(value) = resp.get_int(1) {
-                        return Ok(value);
-                    }
-                } else if let Some(value) = resp.get_str(1) {
-                    return Err(String::from(value));
-                }
+        if success {
+            match ret.parse::<i32>() {
+                Ok(id) => Ok(id),
+                Err(e) => Err(e.into()),
             }
-
-            Err(e) => return Err(e),
-        };
-
-        Err(String::from(
-            "The position required does not math the type.",
-        ))
-    }
-
-    pub fn delete(self, id: i32) -> Result<(), String> {
-        let req = self
-            .controller
-            .client
-            .new_request("one.user.delete")
-            .arg(id);
-        let response = self.controller.client.call(req);
-
-        match response {
-            Ok(resp) => {
-                if resp.rc() {
-                    Ok(())
-                } else {
-                    match resp.get_str(1) {
-                        Some(body) => Err(String::from(body)),
-                        _ => Err(String::from(
-                            "The position required does not math the type.",
-                        )),
-                    }
-                }
-            }
-            Err(e) => Err(e),
+        } else {
+            Err(Errors::OpenNebula(ret))
         }
     }
 
-    pub fn info(&self) -> Result<User, String> {
-        let req = self
+    pub fn delete(self, id: i32) -> Result<(), Errors> {
+        let (success, err) = self
             .controller
             .client
-            .new_request("one.user.info")
-            .arg(self.id);
-        let response = self.controller.client.call(req);
+            .call("one.user.delete", vec![id.into()])?;
 
-        match response {
-            Ok(resp) => match resp.get_str(1) {
-                Some(body) => {
-                    if resp.rc() {
-                        let resource = match Resource::from(body) {
-                            Ok(r) => r,
-                            Err(e) => return Err(format!("Failed to parse the resource: {}", e)),
-                        };
-                        let obj: User = User { resource };
-                        Ok(obj)
-                    } else {
-                        Err(String::from(body))
-                    }
-                }
-                _ => Err(String::from(
-                    "The position required does not math the type.",
-                )),
-            },
-            Err(e) => Err(e),
+        if success {
+            Ok(())
+        } else {
+            Err(Errors::OpenNebula(err))
         }
     }
 
-    pub fn passwd(&self, new_passd: i32) -> Result<(), String> {
-        let req = self
+    pub fn info(&self) -> Result<User, Errors> {
+        let (success, ret) = self
             .controller
             .client
-            .new_request("one.user.passwd")
-            .arg(new_passd);
-        let response = self.controller.client.call(req);
+            .call("one.user.info", vec![self.id.into()])?;
 
-        match response {
-            Ok(resp) => {
-                if resp.rc() {
-                    Ok(())
-                } else {
-                    match resp.get_str(1) {
-                        Some(body) => Err(String::from(body)),
-                        _ => Err(String::from(
-                            "The position required does not math the type.",
-                        )),
-                    }
-                }
-            }
-            Err(e) => Err(e),
+        if success {
+            let resource = match Resource::from(&ret) {
+                Ok(r) => r,
+                Err(e) => return Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
+            };
+            Ok(User { resource })
+        } else {
+            Err(Errors::OpenNebula(ret))
         }
     }
 
-    pub fn login(&self, name: &str, token: &str, period: i32, gid: i32) -> Result<String, String> {
-        let req = self
+    pub fn passwd(&self, new_passd: i32) -> Result<(), Errors> {
+        let (success, ret) = self
             .controller
             .client
-            .new_request("one.user.login")
-            .arg(name)
-            .arg(token)
-            .arg(period)
-            .arg(gid);
-        let response = self.controller.client.call(req);
+            .call("one.user.passwd", vec![new_passd.into()])?;
 
-        match response {
-            Ok(resp) => match resp.get_str(1) {
-                Some(token) => {
-                    if resp.rc() {
-                        Ok(String::from(token))
-                    } else {
-                        Err(String::from(token))
-                    }
-                }
-                _ => Err(String::from(
-                    "The position required does not math the type.",
-                )),
-            },
+        if success {
+            Ok(())
+        } else {
+            Err(Errors::OpenNebula(ret))
+        }
+    }
 
-            Err(e) => Err(e),
+    pub fn login(&self, name: &str, token: &str, period: i32, gid: i32) -> Result<String, Errors> {
+        let (success, ret) = self.controller.client.call(
+            "one.user.login",
+            vec![name.into(), token.into(), period.into(), gid.into()],
+        )?;
+
+        if success {
+            Ok(ret)
+        } else {
+            Err(Errors::OpenNebula(ret))
         }
     }
 }
@@ -247,7 +182,7 @@ mod test {
         // Delete the user
         let response = user_controller.delete(user_id);
 
-        assert_eq!(response, Ok(()));
+        assert!(response.is_ok());
     }
 
     #[test]
@@ -281,6 +216,6 @@ mod test {
         // Delete the user
         let response = user_controller.delete(user_id);
 
-        assert_eq!(response, Ok(()));
+        assert!(response.is_ok());
     }
 }

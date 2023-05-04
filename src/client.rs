@@ -1,8 +1,8 @@
 //! The client module acts as a wrapper of XML-RPC client to add OpenNebula related helpers
 
-use xmlrpc;
-use xmlrpc::{Request, Value};
+use serde_xmlrpc::Value;
 
+use crate::common::Errors;
 use crate::controller::RPCCaller;
 
 /// Struct for storing Client related information
@@ -10,10 +10,7 @@ use crate::controller::RPCCaller;
 pub struct ClientXMLRPC {
     auth: String,
     endpoint: String,
-}
-
-pub struct Response {
-    args: Vec<Value>,
+    // TODO: add http client in a struct, use a trait to abstract the HTTP client
 }
 
 #[allow(dead_code)]
@@ -26,50 +23,27 @@ impl ClientXMLRPC {
 }
 
 impl RPCCaller for ClientXMLRPC {
-    fn new_request<'a>(&self, name: &'a str) -> Request<'a> {
-        Request::new(name).arg(self.auth.clone())
-    }
-
     //Try to import https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html
     // if works open a PR
 
-    fn call(&self, request: Request) -> Result<Response, String> {
-        match request.call_url(&self.endpoint) {
-            Ok(rc) => Response::new(rc),
-            Err(_) => Err(String::from("Cannot contact the server.")),
-        }
-    }
-}
+    fn call(&self, name: &str, args: Vec<Value>) -> Result<(bool, String), Errors> {
+        // TODO: remove this http client creation from here
+        let client = reqwest::blocking::Client::new();
 
-#[allow(dead_code)]
-impl Response {
-    pub fn new(response: Value) -> Result<Response, String> {
-        match response {
-            Value::Array(args) => Ok(Response { args }),
-            _ => Err(String::from("Bad response type.")),
-        }
-    }
+        let mut full_args = vec![Value::String(self.auth.clone())];
+        full_args.extend(args);
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Helpers
-    ///////////////////////////////////////////////////////////////////////////
+        // TODO: remove unwrap
+        let body = serde_xmlrpc::request_to_string(name, full_args).unwrap();
 
-    pub fn get_bool(&self, position: usize) -> Option<bool> {
-        self.args[position].as_bool()
-    }
+        let resp = client.post(&self.endpoint).body(body).send()?;
+        let resp_txt = resp.text()?;
+        let result = serde_xmlrpc::response_from_str::<(bool, String)>(&resp_txt);
 
-    pub fn get_int(&self, position: usize) -> Option<i32> {
-        self.args[position].as_i32()
-    }
-
-    pub fn get_str(&self, position: usize) -> Option<&str> {
-        self.args[position].as_str()
-    }
-
-    pub fn rc(&self) -> bool {
-        match self.get_bool(0) {
-            Some(rc) => rc,
-            _ => false,
+        if let Err(e) = result {
+            Err(Errors::XMLRPC(e))
+        } else {
+            Ok(result.unwrap())
         }
     }
 }
@@ -86,10 +60,9 @@ mod test {
             String::from("http://localhost:2633/RPC2"),
         );
 
-        let req = client.new_request("one.vn.info").arg(0);
-        let request_result = client.call(req).unwrap();
+        let (successful, _) = client.call("one.vn.info", vec![0.into()]).unwrap();
 
-        assert_eq!(request_result.rc(), false);
+        assert_eq!(successful, false);
     }
 
     #[test]
@@ -99,9 +72,8 @@ mod test {
             String::from("http://localhost:2633/RPC2"),
         );
 
-        let req = client.new_request("one.user.info").arg(0);
-        let request_result = client.call(req).unwrap();
+        let (successful, _) = client.call("one.user.info", vec![0.into()]).unwrap();
 
-        assert_eq!(request_result.rc(), true);
+        assert_eq!(successful, true);
     }
 }
