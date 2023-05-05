@@ -13,7 +13,6 @@ pub struct ClientXMLRPC {
     // TODO: add http client here and use a trait to abstract the HTTP client
 }
 
-#[allow(dead_code)]
 impl ClientXMLRPC {
     // TODO, defines method for reading oen_auth
 

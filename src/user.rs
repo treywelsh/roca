@@ -7,14 +7,12 @@ use crate::controller::{Controller, RPCCaller};
 
 use crate::{getters, group_getters};
 
-#[allow(dead_code)]
-#[derive(Debug)] //
+#[derive(Debug)]
 pub struct UserController<'a, C: RPCCaller> {
     pub controller: &'a Controller<C>,
     pub id: i32,
 }
 
-#[allow(dead_code)]
 pub struct User {
     resource: Resource,
 }
@@ -48,7 +46,6 @@ impl User {
 //    x509,
 //}
 
-#[allow(dead_code)]
 impl<'a, C: RPCCaller> UserController<'a, C> {
     // TODOs:
     // - enum form auth_drv options
