@@ -30,3 +30,51 @@ pub trait ResourcePublic: ResourceData {
         Ok(v)
     }
 }
+
+#[macro_export]
+macro_rules! getters {
+    ($resource_type:expr) => {
+        pub fn id(&self) -> Result<i64, Errors> {
+            self._get_i64(concat!("/", $resource_type, "/ID"))
+        }
+        pub fn name(&self) -> Result<String, Errors> {
+            self._get_str(concat!("/", $resource_type, "/NAME"))
+        }
+        pub fn template(&self) -> Template {
+            self._template($resource_type)
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! user_getters {
+    ($resource_type:expr) => {
+        pub fn uid(&self) -> Result<String, Errors> {
+            self._get_str(concat!("/", $resource_type, "/UID"))
+        }
+        pub fn username(&self) -> Result<String, Errors> {
+            self._get_str(concat!("/", $resource_type, "/UNAME"))
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! group_getters {
+    ($resource_type:expr) => {
+        pub fn gid(&self) -> Result<String, Errors> {
+            self._get_str(concat!("/", $resource_type, "/GID"))
+        }
+        pub fn groupname(&self) -> Result<String, Errors> {
+            self._get_str(concat!("/", $resource_type, "/GNAME"))
+        }
+    };
+}
+
+//#[macro_export]
+//macro_rules! template_getters {
+//    ($resource_type:expr) => {
+//        pub fn template(&self) -> Template {
+//            self._template($resource_type)
+//        }
+//    };
+//}
