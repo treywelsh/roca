@@ -5,7 +5,7 @@ use crate::common::Template;
 use crate::common::{Errors, Resource, ResourceData};
 use crate::controller::{Controller, RPCCaller};
 
-use crate::{getters, group_getters};
+use crate::{getters, group_getters, rpc_delete_method};
 
 #[derive(Debug)]
 pub struct UserController<'a, C: RPCCaller> {
@@ -67,18 +67,19 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
         }
     }
 
-    pub fn delete(self, id: i32) -> Result<(), Errors> {
-        let (success, err) = self
-            .controller
-            .client
-            .call("one.user.delete", vec![id.into()])?;
-
-        if success {
-            Ok(())
-        } else {
-            Err(Errors::OpenNebula(err))
-        }
-    }
+    //pub fn delete(self) -> Result<(), Errors> {
+    //    let (success, err) = self
+    //        .controller
+    //        .client
+    //        .call("one.user.delete", vec![self.id.into()])?;
+    //
+    //    if success {
+    //        Ok(())
+    //    } else {
+    //        Err(Errors::OpenNebula(err))
+    //    }
+    //}
+    rpc_delete_method!(delete, "one.user.delete");
 
     pub fn info(&self) -> Result<User, Errors> {
         let (success, ret) = self
@@ -177,7 +178,7 @@ mod test {
         assert!(user_id > 0);
 
         // Delete the user
-        let response = user_controller.delete(user_id);
+        let response = user_controller.delete();
 
         assert!(response.is_ok());
     }
@@ -211,7 +212,7 @@ mod test {
         };
 
         // Delete the user
-        let response = user_controller.delete(user_id);
+        let response = user_controller.delete();
 
         assert!(response.is_ok());
     }
