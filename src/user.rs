@@ -105,6 +105,23 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
         }
     }
 
+    pub fn update(&self, tpl: String) -> Result<User, Errors> {
+        let (success, ret) = self
+            .controller
+            .client
+            .call("one.user.update", vec![tpl.into()])?;
+
+        if success {
+            let resource = match Resource::from(&ret) {
+                Ok(r) => r,
+                Err(e) => return Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
+            };
+            Ok(User { resource })
+        } else {
+            Err(Errors::OpenNebula(ret))
+        }
+    }
+
     pub fn passwd(&self, new_passd: i32) -> Result<(), Errors> {
         let (success, ret) = self
             .controller
