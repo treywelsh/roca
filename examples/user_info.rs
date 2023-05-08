@@ -27,9 +27,8 @@ fn main() {
     tpl.add_pair("tag1", "value1");
     tpl.add_pair("tag2", "value2");
 
-    if let Err(e) = ucontroller.update(tpl.to_string()) {
-        eprintln!("Error on user info: {}", e);
-        exit(1)
+    if let Err(e) = ucontroller.update(tpl.to_string(), roca::common::parameters::Update::Merge) {
+        eprintln!("Error on user update: {}", e);
     }
 
     // read the user informations

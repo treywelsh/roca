@@ -25,25 +25,21 @@ impl RPCCaller for ClientXMLRPC {
     //Try to import https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html
     // if works open a PR
 
-    fn call(&self, name: &str, args: Vec<Value>) -> Result<(bool, String), Errors> {
+    fn call(&self, name: &str, args: Vec<Value>) -> Result<String, Errors> {
         // TODO: remove this http client creation from here
         let client = reqwest::blocking::Client::new();
 
         let mut full_args = vec![Value::String(self.auth.clone())];
         full_args.extend(args);
+        println!("call: {} {:?}", name, full_args);
 
         // TODO: remove unwrap
         let body = serde_xmlrpc::request_to_string(name, full_args).unwrap();
 
         let resp = client.post(&self.endpoint).body(body).send()?;
-        let resp_txt = resp.text()?;
-        let result = serde_xmlrpc::response_from_str::<(bool, String)>(&resp_txt);
+        let text = resp.text()?;
 
-        if let Err(e) = result {
-            Err(Errors::XMLRPC(e))
-        } else {
-            Ok(result.unwrap())
-        }
+        Ok(text)
     }
 }
 
@@ -59,9 +55,10 @@ mod test {
             String::from("http://localhost:2633/RPC2"),
         );
 
-        let (successful, _) = client.call("one.vn.info", vec![0.into()]).unwrap();
+        let resp_txt = client.call("one.vn.info", vec![0.into()]).unwrap();
+        let result = serde_xmlrpc::response_from_str::<(bool, String)>(&resp_txt);
 
-        assert_eq!(successful, false);
+        assert_eq!(result.unwrap().0, false);
     }
 
     #[test]
@@ -71,8 +68,9 @@ mod test {
             String::from("http://localhost:2633/RPC2"),
         );
 
-        let (successful, _) = client.call("one.user.info", vec![0.into()]).unwrap();
+        let resp_txt = client.call("one.user.info", vec![0.into()]).unwrap();
+        let result = serde_xmlrpc::response_from_str::<(bool, String)>(&resp_txt);
 
-        assert_eq!(successful, true);
+        assert_eq!(result.unwrap().0, true);
     }
 }

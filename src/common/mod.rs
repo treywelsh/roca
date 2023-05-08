@@ -7,10 +7,10 @@ pub use errors::Errors;
 mod template;
 pub use template::Template;
 
-pub mod template_builder;
-
 pub mod getters;
+pub mod parameters;
 pub mod resource_methods;
+pub mod template_builder;
 
 // Resource add some methods to get XML attributes wrapping the usage of the sxd_xxx crates
 pub struct Resource {

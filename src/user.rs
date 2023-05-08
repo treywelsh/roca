@@ -1,6 +1,7 @@
 //! The user module allows to interact with OpenNebula users
 
 use crate::common::getters::{ResourceInternal, ResourcePublic};
+use crate::common::parameters::Update;
 use crate::common::Template;
 use crate::common::{Errors, Resource, ResourceData};
 use crate::controller::{Controller, RPCCaller};
@@ -57,19 +58,14 @@ impl User {
 // - add last parameter: array of groups. Currently the client only support Array(Vec<Value>)
 impl<'a, C: RPCCaller> UsersController<'a, C> {
     pub fn allocate(&self, name: &str, passwd: &str, auth_drv: &str) -> Result<i32, Errors> {
-        let (success, ret) = self.controller.client.call(
+        let resp_txt = self.controller.client.call(
             "one.user.allocate",
             vec![name.into(), passwd.into(), auth_drv.into()],
         )?;
 
-        if success {
-            match ret.parse::<i32>() {
-                Ok(id) => Ok(id),
-                Err(e) => Err(e.into()),
-            }
-        } else {
-            Err(Errors::OpenNebula(ret))
-        }
+        let id = self.controller.parse_id_resp(resp_txt)?;
+
+        Ok(id)
     }
 }
 
@@ -80,72 +76,64 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     //        .client
     //        .call("one.user.delete", vec![self.id.into()])?;
     //
-    //    if success {
-    //        Ok(())
-    //    } else {
-    //        Err(Errors::OpenNebula(err))
-    //    }
+    //    self.controller.parse_resp(resp_txt)
     //}
     rpc_delete_method!(delete, "one.user.delete");
 
     pub fn info(&self) -> Result<User, Errors> {
-        let (success, ret) = self
+        let resp_txt = self
             .controller
             .client
             .call("one.user.info", vec![self.id.into()])?;
 
-        if success {
-            let resource = match Resource::from(&ret) {
-                Ok(r) => r,
-                Err(e) => return Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
-            };
-            Ok(User { resource })
-        } else {
-            Err(Errors::OpenNebula(ret))
+        let body = self.controller.parse_body_resp(resp_txt)?;
+        match Resource::from(&body) {
+            Ok(resource) => Ok(User { resource }),
+            Err(e) => Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
         }
     }
 
-    pub fn update(&self, tpl: String) -> Result<User, Errors> {
-        let (success, ret) = self
-            .controller
-            .client
-            .call("one.user.update", vec![tpl.into()])?;
+    pub fn update(&self, tpl: String, policy: Update) -> Result<(), Errors> {
+        let resp_txt = self.controller.client.call(
+            "one.user.update",
+            vec![
+                self.id.into(),
+                tpl.into(),
+                match policy {
+                    Update::Replace => 0,
+                    Update::Merge => 1,
+                }
+                .into(),
+            ],
+        )?;
 
-        if success {
-            let resource = match Resource::from(&ret) {
-                Ok(r) => r,
-                Err(e) => return Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
-            };
-            Ok(User { resource })
-        } else {
-            Err(Errors::OpenNebula(ret))
-        }
+        self.controller.parse_id_resp(resp_txt)?;
+
+        Ok(())
     }
 
     pub fn passwd(&self, new_passd: i32) -> Result<(), Errors> {
-        let (success, ret) = self
+        let resp_txt = self
             .controller
             .client
-            .call("one.user.passwd", vec![new_passd.into()])?;
+            .call("one.user.passwd", vec![self.id.into(), new_passd.into()])?;
 
-        if success {
-            Ok(())
-        } else {
-            Err(Errors::OpenNebula(ret))
-        }
+        self.controller.parse_resp(resp_txt)
     }
 
     pub fn login(&self, name: &str, token: &str, period: i32, gid: i32) -> Result<String, Errors> {
-        let (success, ret) = self.controller.client.call(
+        let resp_txt = self.controller.client.call(
             "one.user.login",
-            vec![name.into(), token.into(), period.into(), gid.into()],
+            vec![
+                self.id.into(),
+                name.into(),
+                token.into(),
+                period.into(),
+                gid.into(),
+            ],
         )?;
 
-        if success {
-            Ok(ret)
-        } else {
-            Err(Errors::OpenNebula(ret))
-        }
+        self.controller.parse_body_resp(resp_txt)
     }
 }
 

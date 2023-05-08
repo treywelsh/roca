@@ -114,4 +114,6 @@ impl<'a> Template<'a> {
             Err(Errors::NotFound(name.to_string()))
         }
     }
+
+    // TODO: convert to template builder
 }
