@@ -3,7 +3,7 @@
 #[macro_export]
 macro_rules! rpc_delete_method {
     ($method_name:ident, $rpc_method:expr) => {
-        pub fn $method_name(self) -> Result<(), Errors> {
+        pub fn $method_name(&self) -> Result<(), Errors> {
             let (success, err) = self
                 .controller
                 .client

@@ -13,6 +13,11 @@ pub struct UserController<'a, C: RPCCaller> {
     pub id: i32,
 }
 
+#[derive(Debug)]
+pub struct UsersController<'a, C: RPCCaller> {
+    pub controller: &'a Controller<C>,
+}
+
 pub struct User {
     resource: Resource,
 }
@@ -46,11 +51,11 @@ impl User {
 //    x509,
 //}
 
-impl<'a, C: RPCCaller> UserController<'a, C> {
-    // TODOs:
-    // - enum form auth_drv options
-    // - more helpers without some options (i.e groups, auth_drv)
-    // - add last parameter: array of groups. Currently the client only support Array(Vec<Value>)
+// TODOs:
+// - enum form auth_drv options
+// - more helpers without some options (i.e groups, auth_drv)
+// - add last parameter: array of groups. Currently the client only support Array(Vec<Value>)
+impl<'a, C: RPCCaller> UsersController<'a, C> {
     pub fn allocate(&self, name: &str, passwd: &str, auth_drv: &str) -> Result<i32, Errors> {
         let (success, ret) = self.controller.client.call(
             "one.user.allocate",
@@ -66,8 +71,10 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
             Err(Errors::OpenNebula(ret))
         }
     }
+}
 
-    //pub fn delete(self) -> Result<(), Errors> {
+impl<'a, C: RPCCaller> UserController<'a, C> {
+    //pub fn delete(&self) -> Result<(), Errors> {
     //    let (success, err) = self
     //        .controller
     //        .client
@@ -164,21 +171,20 @@ mod test {
 
         // Create the user
         let controller = Controller::new(client);
-        let user_controller = controller.user(0);
 
-        let response = user_controller.allocate("test-alloc", "test-alloc", "");
-
+        let response = controller.users().allocate("test-alloc", "test-alloc", "");
         let user_id = match response {
             Ok(id) => id,
             _ => panic!("Error allocating the user"),
         };
+        let ucontroller = controller.user(user_id);
 
         println!("User ID (test-rust): {}", user_id);
 
         assert!(user_id > 0);
 
         // Delete the user
-        let response = user_controller.delete();
+        let response = ucontroller.delete();
 
         assert!(response.is_ok());
     }
@@ -190,21 +196,20 @@ mod test {
             String::from("http://localhost:2633/RPC2"),
         );
         let controller = Controller::new(client);
-        let user_controller = controller.user(0);
 
         // Create the user
         let name = "test-login";
-        let response = user_controller.allocate(name, "password", "");
+        let response = controller.users().allocate(name, "password", "");
 
         let user_id = match response {
             Ok(id) => id,
             _ => panic!("Error allocating the user"),
         };
 
-        let user_controller = controller.user(user_id);
+        let ucontroller = controller.user(user_id);
 
         // Test loging
-        let response = user_controller.login(name, "", 60, 0);
+        let response = ucontroller.login(name, "", 60, 0);
 
         match response {
             Ok(_) => {}
@@ -212,7 +217,7 @@ mod test {
         };
 
         // Delete the user
-        let response = user_controller.delete();
+        let response = ucontroller.delete();
 
         assert!(response.is_ok());
     }

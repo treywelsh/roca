@@ -1,6 +1,6 @@
 //use crate::client::Response;
 use crate::common::Errors;
-use crate::user::UserController;
+use crate::user::{UserController, UsersController};
 
 use serde_xmlrpc::Value;
 
@@ -25,5 +25,9 @@ impl<C: RPCCaller> Controller<C> {
             controller: self,
             id,
         }
+    }
+
+    pub fn users(&self) -> UsersController<C> {
+        UsersController::<C> { controller: self }
     }
 }
