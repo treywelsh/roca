@@ -31,7 +31,6 @@ impl RPCCaller for ClientXMLRPC {
 
         let mut full_args = vec![Value::String(self.auth.clone())];
         full_args.extend(args);
-        println!("call: {} {:?}", name, full_args);
 
         // TODO: remove unwrap
         let body = serde_xmlrpc::request_to_string(name, full_args).unwrap();

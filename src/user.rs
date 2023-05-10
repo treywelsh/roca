@@ -1,6 +1,6 @@
 //! The user module allows to interact with OpenNebula users
 
-use crate::common::getters::{ResourceInternal, ResourcePublic};
+use crate::common::getters::ResourceInternal;
 use crate::common::parameters::Update;
 use crate::common::Template;
 use crate::common::{Errors, Resource, ResourceData};
@@ -24,7 +24,7 @@ pub struct User {
 }
 
 impl ResourceData for User {
-    fn get_data_ref(&self) -> &Resource {
+    fn get_data(&self) -> &Resource {
         &self.resource
     }
 

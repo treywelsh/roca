@@ -2,7 +2,7 @@ use sxd_document::Package;
 use sxd_xpath::{evaluate_xpath, Value};
 
 use crate::common::errors::Errors;
-use crate::common::template_builder::{Pair, Vector};
+use crate::common::template_builder::{Pair, TemplateBuilder, Vector};
 
 pub struct Template<'a> {
     package: &'a Package,
@@ -99,6 +99,7 @@ impl<'a> Template<'a> {
                 return Err(Errors::NotFound(name.to_string()));
             }
             let node = nodes.pop().unwrap();
+
             // fill the vector
             let mut elements = Vec::new();
             for node in node.children() {
@@ -109,11 +110,55 @@ impl<'a> Template<'a> {
                 let name = node.expanded_name().unwrap().local_part();
                 elements.push(Pair(name.to_string(), node.string_value()))
             }
+
+            // TODO: never tested the iterator version
+            //let elements: Vec<Pair> = node
+            //    .children()
+            //    .iter()
+            //    .filter(|&node| node.text().is_some())
+            //    .map(|node| {
+            //        Pair(
+            //            node.expanded_name().unwrap().local_part().to_string(),
+            //            node.string_value(),
+            //        )
+            //    })
+            //    .collect();
+
             Ok(elements)
         } else {
             Err(Errors::NotFound(name.to_string()))
         }
     }
 
-    // TODO: convert to template builder
+    pub fn to_builder(&self) -> Result<TemplateBuilder, Errors> {
+        let document = self.package.as_document();
+
+        // remove trailing '/':
+        let path = &self.prefix_path[..self.prefix_path.len() - 1];
+        let values = evaluate_xpath(&document, path)?;
+
+        let mut builder = TemplateBuilder::new();
+        if let Value::Nodeset(node) = values {
+            let tpl_node = node.document_order().pop().unwrap();
+
+            for node in tpl_node.children() {
+                let name = node.expanded_name().unwrap().local_part();
+
+                if node.children().len() > 1 {
+                    // it's a vec
+                    let mut vector = Vector::new(name.to_string());
+                    for n in node.children() {
+                        let name = n.expanded_name().unwrap().local_part();
+
+                        vector.add_pair(name.to_string(), n.string_value());
+                    }
+                    builder.add_vector(vector);
+                } else {
+                    builder.add_pair(name.to_string(), node.string_value());
+                }
+            }
+        }
+
+        Ok(builder)
+    }
 }

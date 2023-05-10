@@ -86,7 +86,8 @@ impl TemplateBuilder {
         self.pairs.push(Pair::new(k, v));
     }
 
-    pub fn add_vector<T: Into<String>>(&mut self, v: Vector) {
+    //pub fn add_vector<T: Into<String>>(&mut self, v: Vector) {
+    pub fn add_vector(&mut self, v: Vector) {
         self.vectors.push(v);
     }
 
