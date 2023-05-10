@@ -22,7 +22,7 @@ sudo apt install libssl-dev
 
 1. Create a struct with the name of the resource (like `User`)
 2. implement trait `ResourceData` and define it's methods to enable specialization of the default methods added in step 3.
-3. implement traits with default methods `ResourceInternal`, and `ResourcePublic`
+   Then traits with blanket implementation `ResourceInternal` and `ResourcePublic` will be implemented.
    They add generic getters like `get_str`, `get_int` etc...
    Internal and Public getters are both exposed to a roca user, they distinguished for now:
    - Internal getters allow to get attributes from an string path that we know at compile time

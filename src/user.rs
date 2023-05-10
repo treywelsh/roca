@@ -24,19 +24,18 @@ pub struct User {
 }
 
 impl ResourceData for User {
-    fn get_data(&self) -> &Resource {
+    fn get_data_ref(&self) -> &Resource {
         &self.resource
     }
 
+    // TODO: return resource type ?
+    //fn get_type(&self) -> ResourceType {
+    //    ResourceType::User
+    //}
     fn get_type(&self) -> &str {
         "USER"
     }
 }
-
-// add get_str, get_i64...
-impl ResourceInternal for User {}
-
-impl ResourcePublic for User {}
 
 impl User {
     getters!("USER");

@@ -2,6 +2,9 @@ use crate::common::errors::Errors;
 use crate::common::ResourceData;
 use crate::common::Template;
 
+impl<T> ResourceInternal for T where T: ResourceData {}
+impl<T> ResourcePublic for T where T: ResourceData {}
+
 /// ResourceInternal adds default and generic getter methods for internal use (they need a full path of the attribute)
 pub trait ResourceInternal: ResourceData {
     fn _get_str(&self, full_path: &str) -> Result<String, Errors> {
