@@ -7,6 +7,8 @@ Early POC inspired of:
 - [Golang API](https://github.com/OpenNebula/one/tree/master/src/oca/go/src/goca)
 - https://github.com/christian7007/roca
 
+And [here is the XML-RPC documentation for OpenNebula 6.6](https://docs.opennebula.io/6.6/integration_and_development/system_interfaces/api.html)
+
 ## Requirements
 
 This package has to be installled (required by crate reqwest):
@@ -35,3 +37,8 @@ sudo apt install libssl-dev
 
 - allow user to write it's own XML-RPC client based on an other HTTP client (Errors depends on request etc.)
 - more code reuse: for user delete and passwd have the same code (except RPC method and parameters). In addition, various resources have some identical or near identical methods (allocate, info, delete...)
+- look for another XML-RPC crate ?
+  `serde_xmlrpc` lack a bit of flexibility when a method return type may vary regarding it's success:
+  a string type if it's an error, or an ID if it's successful
+  In `parse_id_resp` method of the controller we need to call response_from_str twice
+- implement iterators traits for the templates
