@@ -38,6 +38,10 @@ impl Vector {
     pub fn add_pair<T: Into<String>>(&mut self, k: T, v: T) {
         self.1.push(Pair::new(k, v))
     }
+
+    pub fn rm_pair<T: Into<String> + Copy>(&mut self, k: T) {
+        self.1.retain(|pair| pair.0 != k.into());
+    }
 }
 
 impl Display for Vector {
@@ -87,18 +91,31 @@ impl TemplateBuilder {
     }
 
     //pub fn add_vector<T: Into<String>>(&mut self, v: Vector) {
+    /// Add an existing vector into the template builder
     pub fn add_vector(&mut self, v: Vector) {
         self.vectors.push(v);
     }
 
+    /// Create an empty vector, add it to the template, and return a mutable reference to it
     pub fn make_vector<T: Into<String>>(&mut self, k: T) -> &mut Vector {
         let v = Vector::new(k);
         self.vectors.push(v);
         self.vectors.last_mut().unwrap()
     }
 
-    // fn rm_pair<T: Into<String>>(&mut self, k: T) {}
-    // fn rm_vector<T: Into<String>>(&mut self, k: T) {}
+    pub fn rm_pair<T: Into<String> + Copy>(&mut self, k: T) {
+        self.pairs.retain(|pair| pair.0 != k.into());
+    }
+
+    pub fn rm_vector<T: Into<String> + Copy>(&mut self, k: T) {
+        self.vectors.retain(|pair| pair.0 != k.into());
+    }
+
+    // Will remove both: Pairs and vectors
+    pub fn rm<T: Into<String> + Copy>(&mut self, k: T) {
+        self.rm_pair(k);
+        self.rm_vector(k);
+    }
 }
 
 impl Default for TemplateBuilder {
