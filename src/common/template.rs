@@ -4,11 +4,19 @@ use sxd_xpath::{evaluate_xpath, Value};
 use crate::common::errors::Errors;
 use crate::common::template_builder::{Pair, TemplateBuilder, Vector};
 
+// TODO: merge template and template builder ?
+// For now:
+// - Template provide read only methods: I don't use the sxd_crate capability to edit the document
+// - TemplateBuilder provide all methods to read and modify it's conten
 pub struct Template<'a> {
     package: &'a Package,
     prefix_path: String,
 }
 
+// TODO: add methods:
+// - get_strs (in case there is several pairs with the same key)
+// - get_i64s ?
+// - get_float64 (there is some CPU key with a floating type)
 impl<'a> Template<'a> {
     pub fn new(package: &'a Package, resource_type: &str) -> Self {
         let mut prefix_path = String::from("/");
@@ -20,8 +28,6 @@ impl<'a> Template<'a> {
             prefix_path,
         }
     }
-
-    // TODO: pub fn get_strs(&self, name: &str) -> Result<Vec<String>, Errors> {)
 
     pub fn get_str(&self, name: &str) -> Result<String, Errors> {
         let mut path = self.prefix_path.clone();
@@ -130,6 +136,8 @@ impl<'a> Template<'a> {
         }
     }
 
+    /// Convert the template to a template builder, which
+    /// allow to modify, iterate etc. it's content
     pub fn to_builder(&self) -> Result<TemplateBuilder, Errors> {
         let document = self.package.as_document();
 
