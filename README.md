@@ -22,16 +22,15 @@ sudo apt install libssl-dev
 
 ## How to implement a new resource
 
-1. Create a struct with the name of the resource (like `User`)
-2. implement trait `ResourceData` and define it's methods to enable specialization of the default methods added in step 3.
-   Then traits with blanket implementation `ResourceInternal` and `ResourcePublic` will be implemented.
-   They add generic getters like `get_str`, `get_int` etc...
-   Internal and Public getters are both exposed to a roca user, they distinguished for now:
-   - Internal getters allow to get attributes from an string path that we know at compile time
-   - Public ones only need the attribute name (they are more convenient to use for an externl user)
-   Are internal getters truly required ?
-4. Add more attributes getters via macros `getters`, `group_getters`
-   They allow to get attributes defined for all resources: `ID`, `NAME`, `GROUP_ID`...
+1. Create a struct with the name of the resource (like `User`), and 
+   add a `Resource` type field inside
+2. implement trait `ResourceGetter` and define it's methods.
+   Then `CommonGetters` trait with blanket implementation will be implemented automatically.
+   It provides some generic methods (`id`, `name`, `get_str`, ...).
+3. Add more attributes getters in implementing traits with default methods, for instance: 
+   `impl Group for XXX {}` and
+   `impl Owner for XXX {}`
+   Previously check if they are required: for instance an `User` resource shouldn't implement `Owner` because it doesn't have `UID` and `UNAME` fields in it's XML representation.
 
 ## TODOs
 
@@ -42,3 +41,15 @@ sudo apt install libssl-dev
   a string type if it's an error, or an ID if it's successful
   In `parse_id_resp` method of the controller we need to call response_from_str twice
 - implement iterators traits for the templates
+
+## Note
+
+I tried a bunch of various XML crates (`quick-xml`, `xmltree`, [serde-xml-rs](https://github.com/tafia/quick-xml/issues/526#issuecomment-1434576848), `sxd-XXX`, `xml-doc`) to work with the partially dynamic XML. I didn't benchmark them, I only tried them to see how handy they are for my use case.
+
+At the end I chose `sxd-path` and `sxd-document` crates I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
+
+`xml-doc` is not maintained anymore but it appears to me that's a good fit for `roca` so I may want to provide bug fixes if needed.
+If it's a problem `xmltree` may be the nearest it's behavior.
+It's built on top of `quick-xml` making it a lot more easy to use.
+
+The code using sxd crate it available at `master_sxd_crate` repository branch.

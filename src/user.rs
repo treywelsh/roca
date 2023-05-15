@@ -1,12 +1,15 @@
 //! The user module allows to interact with OpenNebula users
 
-use crate::common::getters::ResourceInternal;
+use std::fmt::Display;
+
 use crate::common::parameters::Update;
-use crate::common::Template;
-use crate::common::{Errors, Resource, ResourceData};
+use crate::common::resource::{Resource, ResourceGetter};
+use crate::common::resource_getters::{CommonGetters, Group, Owner};
+use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 
-use crate::{getters, group_getters, rpc_delete_method};
+// TODO: remove this /
+use crate::rpc_delete_method;
 
 #[derive(Debug)]
 pub struct UserController<'a, C: RPCCaller> {
@@ -23,23 +26,24 @@ pub struct User {
     resource: Resource,
 }
 
-impl ResourceData for User {
-    fn get_data(&self) -> &Resource {
+impl ResourceGetter for User {
+    // read only
+    fn get_resource(&self) -> &Resource {
         &self.resource
     }
 
-    // TODO: return resource type ?
-    //fn get_type(&self) -> ResourceType {
-    //    ResourceType::User
-    //}
-    fn get_type(&self) -> &str {
-        "USER"
+    // read-write
+    fn get_resource_mut(&mut self) -> &mut Resource {
+        &mut self.resource
     }
 }
 
-impl User {
-    getters!("USER");
-    group_getters!("USER");
+impl Group for User {}
+
+impl Display for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.resource.document.write_str().unwrap())
+    }
 }
 
 //https://docs.opennebula.io/6.4/installation_and_configuration/authentication/overview.html

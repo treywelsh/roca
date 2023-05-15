@@ -1,25 +1,14 @@
 extern crate roca;
 
-use roca::common::template_builder::{Pair, TemplateBuilder, Vector};
+use roca::prelude::*;
 
 fn main() {
-    // customize the user
+    // we can build the template from scratch via an empty resource
     let mut tpl = TemplateBuilder::new();
 
-    println!("add tag1 and tag2 pairs, and vec1 vector");
-    tpl.add_pair("tag1", "value1");
-    tpl.add_pair("tag2", "value2");
-    tpl.add_vector(Vector(
-        "vec1".to_string(),
-        vec![
-            Pair("tag3".to_string(), "value3".to_string()),
-            Pair("tag4".to_string(), "value4".to_string()),
-        ],
-    ));
+    tpl.put_str("tag1", "value1");
+    tpl.put_str("tag2", "value2");
 
-    println!("remove tag2 and add tag5");
-    tpl.rm_pair("tag2");
-    tpl.add_pair("tag5", "value5");
-
-    println!("Template:\n{}\n", tpl);
+    let xml = tpl.to_string();
+    println!("template builder: {}\n", xml);
 }
