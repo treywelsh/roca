@@ -11,6 +11,10 @@ pub mod user;
 
 pub mod prelude {
     pub use crate::client::ClientXMLRPC;
-    pub use crate::common::getters::ResourcePublic;
+    pub use crate::common::resource::Resource;
+    pub use crate::common::resource::ResourceGetter;
+    pub use crate::common::resource_getters::{CommonGetters, Group, Owner};
+    pub use crate::common::template_builder::TemplateBuilder;
+    pub use crate::common::template_getters::TemplateCommonGetters;
     pub use crate::controller::Controller;
 }

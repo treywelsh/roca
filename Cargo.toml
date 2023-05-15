@@ -8,8 +8,10 @@ edition = "2021"
 
 [dependencies]
 serde_xmlrpc = "0.1"
-sxd-xpath = "0.4"
-sxd-document = "0.3"
+xml-doc = "0.2"
 
 # Used by the default client
 reqwest = { version= "0.11", features = ["blocking"] }
+
+[profile.dev]
+debug-assertions=false

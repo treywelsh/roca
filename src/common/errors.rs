@@ -2,10 +2,10 @@ use std::{fmt::Display, num::ParseIntError};
 
 #[derive(Debug)]
 pub enum Errors {
-    SXDPath(sxd_xpath::Error),
-    SXDDocParser(sxd_document::parser::Error),
+    XMLDoc(xml_doc::Error),
     ParseInt(ParseIntError),
-    SeveralNodes(String),
+    HasChilds(String),
+    //SeveralNodes(String),  find method returns only the first, should use find_all ?
     NotFound(String),
     XMLRPC(serde_xmlrpc::Error),
     OpenNebula(String),
@@ -13,15 +13,9 @@ pub enum Errors {
     Roca(String),
 }
 
-impl From<sxd_xpath::Error> for Errors {
-    fn from(err: sxd_xpath::Error) -> Self {
-        Self::SXDPath(err)
-    }
-}
-
-impl From<sxd_document::parser::Error> for Errors {
-    fn from(err: sxd_document::parser::Error) -> Self {
-        Self::SXDDocParser(err)
+impl From<xml_doc::Error> for Errors {
+    fn from(err: xml_doc::Error) -> Self {
+        Self::XMLDoc(err)
     }
 }
 
@@ -46,9 +40,21 @@ impl From<reqwest::Error> for Errors {
 impl Display for Errors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::SXDPath(e) => write!(f, "roca: XML path: {}", e),
-            Self::SXDDocParser(e) => write!(f, "roca: xml document: {}", e),
-            Self::SeveralNodes(key) => write!(f, "roca: several keys found: {}", key),
+            // TODO: move this in my xml-doc github fork:
+            Self::XMLDoc(e) => match e {
+                xml_doc::Error::Io(e) => write!(f, "roca: xml IO error: {}", e),
+                xml_doc::Error::CannotDecode => write!(f, "roca: XML decoding error"),
+                xml_doc::Error::MalformedXML(e) => write!(f, "roca: XML malformed: {}", e),
+                xml_doc::Error::ContainerCannotMove => {
+                    write!(f, "roca: container element cannot have a parent.")
+                }
+                xml_doc::Error::HasAParent => {
+                    write!(f, "roca: needs to detach element before assigning a parent")
+                }
+            },
+
+            //Self::SeveralNodes(key) => write!(f, "roca: several keys found: {}", key),
+            Self::HasChilds(key) => write!(f, "roca: this node has childs: {}", key),
             Self::NotFound(key) => write!(f, "roca: key wasn't found: {}", key),
             Self::ParseInt(e) => write!(f, "roca: Failed to parse as integer: {}", e),
             Self::XMLRPC(e) => write!(f, "roca: XML-RPC error: {}", e),
