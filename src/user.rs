@@ -127,13 +127,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     pub fn login(&self, name: &str, token: &str, period: i32, gid: i32) -> Result<String, Errors> {
         let resp_txt = self.controller.client.call(
             "one.user.login",
-            vec![
-                self.id.into(),
-                name.into(),
-                token.into(),
-                period.into(),
-                gid.into(),
-            ],
+            vec![name.into(), token.into(), period.into(), gid.into()],
         )?;
 
         self.controller.parse_body_resp(resp_txt)
