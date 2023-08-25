@@ -4,7 +4,7 @@ use std::fmt::Display;
 
 use crate::common::parameters::Update;
 use crate::common::resource::{Resource, ResourceGetter};
-use crate::common::resource_getters::{CommonGetters, Group, Owner};
+use crate::common::resource_getters::{CommonGetters, Group};
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 
