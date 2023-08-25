@@ -151,16 +151,22 @@ mod test {
 
         match user_controller.info() {
             Ok(infos) => {
-                println!("user id: {}", infos.id().unwrap());
-                println!("user name: {}", infos.name().unwrap());
-                println!("user GID: {}", infos.gid().unwrap());
-                println!("user GNAME: {}", infos.groupname().unwrap());
-                println!(
-                    "user AUTH_DRIVER: {}",
-                    infos.get_str("AUTH_DRIVER").unwrap()
-                );
+                assert!(infos.id().is_ok());
+                assert_eq!(infos.id().unwrap(), 0);
+
+                assert!(infos.name().is_ok());
+                assert_eq!(infos.name().unwrap(), "oneadmin".to_owned());
+
+                assert!(infos.gid().is_ok());
+                assert_eq!(infos.gid().unwrap(), 0);
+
+                assert!(infos.groupname().is_ok());
+                assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
+
+                assert!(infos.get_str("AUTH_DRIVER").is_ok());
+                assert_eq!(infos.get_str("AUTH_DRIVER").unwrap(), "core".to_owned());
             }
-            _ => panic!("Error on user info"),
+            Err(e) => panic!("Error on user info: {}", e),
         }
     }
 
@@ -174,21 +180,17 @@ mod test {
         // Create the user
         let controller = Controller::new(client);
 
-        let response = controller.users().allocate("test-alloc", "test-alloc", "");
-        let user_id = match response {
-            Ok(id) => id,
-            _ => panic!("Error allocating the user"),
-        };
-        let ucontroller = controller.user(user_id);
+        let allocate_response = controller.users().allocate("test-alloc", "test-alloc", "");
 
-        println!("User ID (test-rust): {}", user_id);
-
+        assert!(allocate_response.is_ok());
+        let user_id = allocate_response.unwrap();
         assert!(user_id > 0);
 
-        // Delete the user
-        let response = ucontroller.delete();
+        let ucontroller = controller.user(user_id);
 
-        assert!(response.is_ok());
+        // Delete the user
+        let delete_response = ucontroller.delete();
+        assert!(delete_response.is_ok());
     }
 
     #[test]
@@ -200,27 +202,20 @@ mod test {
         let controller = Controller::new(client);
 
         // Create the user
-        let name = "test-login";
-        let response = controller.users().allocate(name, "password", "");
-
-        let user_id = match response {
-            Ok(id) => id,
-            _ => panic!("Error allocating the user"),
-        };
+        let name = "test-login4";
+        let allocate_response = controller.users().allocate(name, "password", "core");
+        assert!(allocate_response.is_ok());
+        let user_id = allocate_response.unwrap();
+        assert!(user_id > 0);
 
         let ucontroller = controller.user(user_id);
 
         // Test loging
-        let response = ucontroller.login(name, "", 60, 0);
-
-        match response {
-            Ok(_) => {}
-            Err(e) => panic!("{}", e),
-        };
+        let login_response = ucontroller.login(name, "password", 60, 0);
+        assert!(login_response.is_ok());
 
         // Delete the user
-        let response = ucontroller.delete();
-
-        assert!(response.is_ok());
+        let delete_response = ucontroller.delete();
+        assert!(delete_response.is_ok());
     }
 }
