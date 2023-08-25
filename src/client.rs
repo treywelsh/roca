@@ -35,8 +35,15 @@ impl RPCCaller for ClientXMLRPC {
         // TODO: remove unwrap
         let body = serde_xmlrpc::request_to_string(name, full_args).unwrap();
 
-        let resp = client.post(&self.endpoint).body(body).send()?;
-        let text = resp.text()?;
+        let resp = match client.post(&self.endpoint).body(body).send() {
+            Ok(r) => r,
+            Err(e) => return Err(Errors::HTTPReq(e.to_string())),
+        };
+
+        let text = match resp.text() {
+            Ok(t) => t,
+            Err(e) => return Err(Errors::HTTPRespHandling(e.to_string())),
+        };
 
         Ok(text)
     }

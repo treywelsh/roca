@@ -34,7 +34,6 @@ sudo apt install libssl-dev
 
 ## TODOs
 
-- allow user to write it's own XML-RPC client based on an other HTTP client (Errors depends on request etc.)
 - more code reuse: for user delete and passwd have the same code (except RPC method and parameters). In addition, various resources have some identical or near identical methods (allocate, info, delete...)
 - look for another XML-RPC crate ?
   `serde_xmlrpc` lack a bit of flexibility when a method return type may vary regarding it's success:
