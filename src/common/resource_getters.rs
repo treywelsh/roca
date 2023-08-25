@@ -51,9 +51,9 @@ pub trait Owner: ResourceGetter {
 }
 
 pub trait Group: ResourceGetter {
-    fn gid(&self) -> Result<String, Errors> {
+    fn gid(&self) -> Result<i64, Errors> {
         self.get_resource()
-            .get_str(&self.get_resource().root, "GID")
+            .get_i64(&self.get_resource().root, "GID")
     }
     fn groupname(&self) -> Result<String, Errors> {
         self.get_resource()
