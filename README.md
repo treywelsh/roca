@@ -34,6 +34,8 @@ sudo apt install libssl-dev
 
 ## TODOs
 
+- rework tests
+- implement VM resource
 - more code reuse: for user delete and passwd have the same code (except RPC method and parameters). In addition, various resources have some identical or near identical methods (allocate, info, delete...)
 - look for another XML-RPC crate ?
   `serde_xmlrpc` lack a bit of flexibility when a method return type may vary regarding it's success:
@@ -45,7 +47,7 @@ sudo apt install libssl-dev
 
 I tried a bunch of various XML crates (`quick-xml`, `xmltree`, [serde-xml-rs](https://github.com/tafia/quick-xml/issues/526#issuecomment-1434576848), `sxd-XXX`, `xml-doc`) to work with the partially dynamic XML. I didn't benchmark them, I only tried them to see how handy they are for my use case.
 
-At the end I chose `sxd-path` and `sxd-document` crates I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
+Temporarily I chose `sxd-path` and `sxd-document` crates, however I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
 
 `xml-doc` is not maintained anymore but it appears to me that's a good fit for `roca` so I may want to provide bug fixes if needed.
 If it's a problem `xmltree` may be the nearest it's behavior.
