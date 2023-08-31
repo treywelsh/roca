@@ -33,9 +33,9 @@ impl TemplateBuilder {
 
     // How to put a str inside of a vector ? Replace the whole vector ? if there's several vectors, replace all ?
     pub fn put_str(&mut self, name: &str, value: &str) {
-        Element::build(&mut self.document, name)
+        Element::build(name)
             .text_content(value)
-            .push_to(self.element);
+            .push_to(&mut self.document, self.element);
     }
 }
 

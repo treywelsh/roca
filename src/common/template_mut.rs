@@ -34,9 +34,9 @@ impl<'a> TemplateMut<'a> {
     // allow to delete pair and vector
     // allow to add a pair inside of a vector
     pub fn put_str(&mut self, name: &str, value: &str) {
-        Element::build(self.document, name)
+        Element::build(name)
             .text_content(value)
-            .push_to(self.element);
+            .push_to(self.document, self.element);
     }
 
     pub fn del(&mut self, name: &str) -> Result<(), Errors> {
