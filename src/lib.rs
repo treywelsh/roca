@@ -8,9 +8,11 @@ pub mod client;
 pub mod common;
 pub mod controller;
 pub mod user;
+pub mod vm;
 
 pub mod prelude {
     pub use crate::client::ClientXMLRPC;
+    pub use crate::common::parameters;
     pub use crate::common::resource::Resource;
     pub use crate::common::resource::ResourceGetter;
     pub use crate::common::resource_getters::{CommonGetters, Group, Owner};

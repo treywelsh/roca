@@ -69,9 +69,8 @@ fn main() {
     //    ],
     //));
 
-    let xml = tpl.to_string();
-    println!("update user with template: {}\n", xml);
-    if let Err(e) = ucontroller.update(xml, roca::common::parameters::Update::Merge) {
+    println!("update user with template: {}\n", tpl);
+    if let Err(e) = ucontroller.update(tpl, parameters::UpdateType::Merge) {
         eprintln!("Error on user update: {}", e);
     }
 
