@@ -5,8 +5,7 @@ use std::fmt::Display;
 use crate::common::parameters::UpdateType;
 use crate::common::resource::{Resource, ResourceGetter};
 use crate::common::resource_getters::{CommonGetters, Group};
-use crate::common::template_getters::TemplateGetter;
-use crate::common::{Errors, Template};
+use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 
 use crate::prelude::TemplateCommonGetters;

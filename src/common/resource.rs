@@ -74,3 +74,9 @@ impl Resource {
         Ok(i_str.parse::<i64>()?)
     }
 }
+
+impl Default for Resource {
+    fn default() -> Self {
+        Self::new()
+    }
+}
