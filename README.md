@@ -34,6 +34,8 @@ sudo apt install libssl-dev
 
 ## TODOs
 
+- implement pool methods
+- fix all TODOs
 - rework tests
 - implement VM resource
 - more code reuse: for user delete and passwd have the same code (except RPC method and parameters). In addition, various resources have some identical or near identical methods (allocate, info, delete...)
