@@ -1,6 +1,7 @@
 //use crate::client::Response;
 use crate::common::Errors;
 use crate::user::{UserController, UsersController};
+use crate::vm::{VirtualMachineController, VirtualMachinesController};
 
 use serde_xmlrpc::Value;
 
@@ -81,5 +82,16 @@ impl<C: RPCCaller> Controller<C> {
 
     pub fn users(&self) -> UsersController<C> {
         UsersController::<C> { controller: self }
+    }
+
+    pub fn virtual_machine(&self, id: i32) -> VirtualMachineController<C> {
+        VirtualMachineController::<C> {
+            controller: self,
+            id,
+        }
+    }
+
+    pub fn virtual_machines(&self) -> VirtualMachinesController<C> {
+        VirtualMachinesController::<C> { controller: self }
     }
 }
