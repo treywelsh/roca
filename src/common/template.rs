@@ -41,15 +41,11 @@ impl<'a> TemplateGetter<'a> for Template<'a> {
 
 impl<'a> TemplateCommonGetters<'a> for Template<'a> {}
 
-//impl<'a> Display for Template<'a> {
-//    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//        // try to display only the template part of the XML
-//        let mut document = Document::new();
-//        document.push_root_node(self.element.as_node());
-//        //f.write_str(&self.document.write_str().unwrap())
-//        f.write_str(&document.write_str().unwrap())
-//    }
-//}
+impl<'a> Display for Template<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.document.write_str().unwrap())
+    }
+}
 
 // TODO: allow to iter on pairs and vectors
 pub struct TemplatePairs {}
