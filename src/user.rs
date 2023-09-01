@@ -2,12 +2,14 @@
 
 use std::fmt::Display;
 
-use crate::common::parameters::Update;
+use crate::common::parameters::UpdateType;
 use crate::common::resource::{Resource, ResourceGetter};
 use crate::common::resource_getters::{CommonGetters, Group};
-use crate::common::Errors;
+use crate::common::template_getters::TemplateGetter;
+use crate::common::{Errors, Template};
 use crate::controller::{Controller, RPCCaller};
 
+use crate::prelude::TemplateCommonGetters;
 // TODO: remove this /
 use crate::rpc_delete_method;
 
@@ -96,17 +98,20 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
         }
     }
 
-    pub fn update(&self, tpl: String, policy: Update) -> Result<(), Errors> {
+    /// Updates adds user content
+    /// * tpl: The new user contents. Syntax can be the usual attribute=value or XML.
+    /// * policy: Update type: 0: Replace the whole template. 1: Merge new template with the existing one.
+    pub fn update<T: TemplateCommonGetters<'a> + Display>(
+        &self,
+        tpl: T,
+        policy: UpdateType,
+    ) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.user.update",
             vec![
                 self.id.into(),
-                tpl.into(),
-                match policy {
-                    Update::Replace => 0,
-                    Update::Merge => 1,
-                }
-                .into(),
+                tpl.to_string().into(),
+                policy.value().into(),
             ],
         )?;
 
