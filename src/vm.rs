@@ -4,11 +4,10 @@ use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
 use crate::common::resource::{Resource, ResourceGetter};
-use crate::common::resource_getters::{CommonGetters, Group};
+use crate::common::resource_getters::{CommonGetters, Group, Owner};
+use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
-
-use crate::prelude::TemplateCommonGetters;
 
 #[derive(Debug)]
 pub struct VirtualMachineController<'a, C: RPCCaller> {
@@ -50,6 +49,7 @@ impl ResourceGetter for VirtualMachine {
 }
 
 impl Group for VirtualMachine {}
+impl Owner for VirtualMachine {}
 
 impl Display for VirtualMachine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -123,7 +123,9 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
             vec![action.to_string().into(), self.id.into()],
         )?;
 
-        self.controller.parse_resp(resp_txt)
+        self.controller.parse_id_resp(resp_txt)?;
+
+        Ok(())
     }
 
     /// Deploy in the selected hostID and/or dsID. Enforce to return error in case of
@@ -583,29 +585,44 @@ impl<'a, C: RPCCaller> VMDiskController<'a, C> {
     }
 }
 
-/*
 #[cfg(test)]
 mod test {
 
     use super::*;
-    use crate::client::ClientXMLRPC;
+    use crate::{client::ClientXMLRPC, prelude::*};
 
     #[test]
-    fn virtual_machine_info() {
+    fn virtual_machine_allocate_delete() {
         let client = ClientXMLRPC::new(
-            String::from("oneadmin:opennebula"),
-            String::from("http://localhost:2633/RPC2"),
+            String::from("oneadmin:pDi4mFBHue"),
+            String::from("http://192.168.33.10:2633/RPC2"),
         );
-        let controller = Controller::new(client);
-        let virtual_machine_controller = controller.virtual_machine(0);
 
-        match virtual_machine_controller.info() {
+        // Create the virtual_machine
+        let controller = Controller::new(client);
+
+        let mut tpl = TemplateBuilder::new();
+        tpl.put_str("NAME", "roca-test-vm");
+        tpl.put_str("CPU", "1");
+        tpl.put_str("MEMORY", "32");
+        tpl.put_str("custom", "test");
+
+        let allocate_response = controller.virtual_machines().allocate(tpl, false);
+
+        println!("{:?}", allocate_response);
+        assert!(allocate_response.is_ok());
+        let vm_id = allocate_response.unwrap();
+        assert!(vm_id > 0);
+
+        let vm_controller = controller.virtual_machine(vm_id);
+
+        match vm_controller.info() {
             Ok(infos) => {
                 assert!(infos.id().is_ok());
-                assert_eq!(infos.id().unwrap(), 0);
+                assert!(infos.id().unwrap() > 0);
 
                 assert!(infos.name().is_ok());
-                assert_eq!(infos.name().unwrap(), "oneadmin".to_owned());
+                assert_eq!(infos.name().unwrap(), "roca-test-vm");
 
                 assert!(infos.gid().is_ok());
                 assert_eq!(infos.gid().unwrap(), 0);
@@ -613,66 +630,16 @@ mod test {
                 assert!(infos.groupname().is_ok());
                 assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
 
-                assert!(infos.get_str("AUTH_DRIVER").is_ok());
-                assert_eq!(infos.get_str("AUTH_DRIVER").unwrap(), "core".to_owned());
+                assert!(infos.groupname().is_ok());
+                assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),
         }
-    }
 
-    #[test]
-    fn virtual_machine_allocate_delete() {
-        let client = ClientXMLRPC::new(
-            String::from("oneadmin:opennebula"),
-            String::from("http://localhost:2633/RPC2"),
-        );
+        // Terminate the virtual_machine
+        let terminate_response = vm_controller.action(Action::TerminateHard);
+        println!("{:?}", terminate_response);
 
-        // Create the virtual_machine
-        let controller = Controller::new(client);
-
-        let allocate_response =
-            controller
-                .virtual_machines()
-                .allocate("test-alloc", "test-alloc", "");
-
-        assert!(allocate_response.is_ok());
-        let virtual_machine_id = allocate_response.unwrap();
-        assert!(virtual_machine_id > 0);
-
-        let ucontroller = controller.virtual_machine(virtual_machine_id);
-
-        // Delete the virtual_machine
-        let delete_response = ucontroller.delete();
-        assert!(delete_response.is_ok());
-    }
-
-    #[test]
-    fn virtual_machine_login() {
-        let client = ClientXMLRPC::new(
-            String::from("oneadmin:opennebula"),
-            String::from("http://localhost:2633/RPC2"),
-        );
-        let controller = Controller::new(client);
-
-        // Create the virtual_machine
-        let name = "test-login4";
-        let allocate_response = controller
-            .virtual_machines()
-            .allocate(name, "password", "core");
-        assert!(allocate_response.is_ok());
-        let virtual_machine_id = allocate_response.unwrap();
-        assert!(virtual_machine_id > 0);
-
-        let ucontroller = controller.virtual_machine(virtual_machine_id);
-
-        // Test loging
-        let login_response = ucontroller.login(name, "password", 60, 0);
-        assert!(login_response.is_ok());
-
-        // Delete the virtual_machine
-        let delete_response = ucontroller.delete();
-        assert!(delete_response.is_ok());
+        assert!(terminate_response.is_ok());
     }
 }
-
-*/
