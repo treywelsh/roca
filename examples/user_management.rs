@@ -6,8 +6,8 @@ use roca::prelude::*;
 
 fn main() {
     let client = ClientXMLRPC::new(
-        String::from("oneadmin:pDi4mFBHue"),
-        String::from("http://192.168.33.10:2633/RPC2"),
+        String::from("oneadmin:opennebula"),
+        String::from("http://localhost:2633/RPC2"),
     );
     let controller = Controller::new(client);
 
