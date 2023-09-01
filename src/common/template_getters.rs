@@ -4,13 +4,13 @@ use crate::common::errors::Errors;
 use crate::common::template_elements::{Pair, Vector};
 
 pub trait TemplateGetter<'a> {
-    fn get_document(&'a self) -> &'a Document;
-    fn get_element(&'a self) -> &'a Element;
+    fn get_document(&self) -> &Document;
+    fn get_element(&self) -> &Element;
 }
 
 pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
     // TODO: reuse methods from resource ?
-    fn get_str(&'a self, name: &str) -> Result<String, Errors> {
+    fn get_str(&self, name: &str) -> Result<String, Errors> {
         let tpl_element = self.get_element();
         let tpl_document = self.get_document();
 
@@ -27,7 +27,7 @@ pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
         }
     }
 
-    fn get_i64(&'a self, name: &str) -> Result<i64, Errors> {
+    fn get_i64(&self, name: &str) -> Result<i64, Errors> {
         let value_str = self.get_str(name)?;
 
         let v = value_str.parse()?;

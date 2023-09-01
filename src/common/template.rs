@@ -30,11 +30,11 @@ impl<'a> Template<'a> {
 }
 
 impl<'a> TemplateGetter<'a> for Template<'a> {
-    fn get_document(&'a self) -> &'a Document {
+    fn get_document(&self) -> &Document {
         self.document
     }
 
-    fn get_element(&'a self) -> &'a Element {
+    fn get_element(&self) -> &Element {
         &self.element
     }
 }
