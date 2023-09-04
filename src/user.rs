@@ -10,7 +10,7 @@ use crate::controller::{Controller, RPCCaller};
 
 use crate::prelude::TemplateCommonGetters;
 // TODO: remove this /
-use crate::rpc_delete_method;
+use crate::rpc_noparam_method;
 
 #[derive(Debug)]
 pub struct UserController<'a, C: RPCCaller> {
@@ -82,7 +82,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     //
     //    self.controller.parse_resp(resp_txt)
     //}
-    rpc_delete_method!(delete, "one.user.delete");
+    rpc_noparam_method!(delete, "one.user.delete");
 
     pub fn info(&self) -> Result<User, Errors> {
         let resp_txt = self
