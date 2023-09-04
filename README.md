@@ -34,16 +34,17 @@ sudo apt install libssl-dev
 
 ## TODOs
 
+- merge resource and template_builder ?
 - implement pool methods
 - fix all TODOs
-- rework tests
-- implement VM resource
-- more code reuse: for user delete and passwd have the same code (except RPC method and parameters). In addition, various resources have some identical or near identical methods (allocate, info, delete...)
+- allow to parse OpenNebula specific template format
+- improve tests, increase coverage
+- more code reuse for common resource methods like with delete, chmod
 - look for another XML-RPC crate ?
   `serde_xmlrpc` lack a bit of flexibility when a method return type may vary regarding it's success:
   a string type if it's an error, or an ID if it's successful
   In `parse_id_resp` method of the controller we need to call response_from_str twice
-- implement iterators traits for the templates
+- implement iterators traits at least for resource pool
 
 ## Note
 
