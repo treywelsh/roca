@@ -12,42 +12,9 @@ pub trait ResourceGetter {
 pub struct Resource {
     pub document: Document,
     pub root: Element,
-    //pub template: Element,
 }
 
 impl Resource {
-    /// new returns an empty resource useful to build
-    pub fn new() -> Self {
-        let mut document = Document::new();
-        let root = Element::new(&mut document, "TEMPLATE");
-        document.push_root_node(root.as_node());
-        //let template = Element::new(&mut document, "TEMPLATE");
-        //template.push_to(&mut document, root);
-        Resource {
-            document,
-            root,
-            //template,
-        }
-    }
-
-    // TODO: implement a trait?
-    pub fn from(raw_xml: &str) -> Result<Resource, Errors> {
-        let mut opts = ReadOptions::default();
-        opts.require_decl = false;
-
-        let document = match Document::parse_reader_with_opts(raw_xml.as_bytes(), opts) {
-            Ok(p) => p,
-            Err(e) => return Err(e.into()),
-        };
-        let root = document.root_element().unwrap();
-        //let template = root.find(&document, "TEMPLATE").unwrap();
-        Ok(Resource {
-            document,
-            root,
-            //template,
-        })
-    }
-
     pub fn id(&self) -> Result<i64, Errors> {
         self.get_i64(&self.root, "ID")
     }
@@ -75,8 +42,23 @@ impl Resource {
     }
 }
 
-impl Default for Resource {
-    fn default() -> Self {
-        Self::new()
+impl TryFrom<&str> for Resource {
+    type Error = Errors;
+
+    fn try_from(raw_xml: &str) -> Result<Self, Self::Error> {
+        let mut opts = ReadOptions::default();
+        opts.require_decl = false;
+
+        let document = match Document::parse_reader_with_opts(raw_xml.as_bytes(), opts) {
+            Ok(p) => p,
+            Err(e) => return Err(e.into()),
+        };
+        let root = document.root_element().unwrap();
+        //let template = root.find(&document, "TEMPLATE").unwrap();
+        Ok(Resource {
+            document,
+            root,
+            //template,
+        })
     }
 }

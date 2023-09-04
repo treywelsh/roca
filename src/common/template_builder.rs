@@ -1,5 +1,5 @@
-use std::fmt::format;
 use std::fmt::Display;
+use std::str::FromStr;
 
 use xml_doc::{Document, Element};
 

@@ -91,7 +91,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
             .call("one.user.info", vec![self.id.into()])?;
 
         let body = self.controller.parse_body_resp(resp_txt)?;
-        match Resource::from(&body) {
+        match Resource::try_from(body.as_str()) {
             Ok(resource) => Ok(User { resource }),
             Err(e) => Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
         }

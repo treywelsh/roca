@@ -323,7 +323,7 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
             .call("one.vm.info", vec![self.id.into()])?;
 
         let body = self.controller.parse_body_resp(resp_txt)?;
-        match Resource::from(&body) {
+        match Resource::try_from(body.as_str()) {
             Ok(resource) => Ok(VirtualMachine { resource }),
             Err(e) => Err(Errors::Roca(format!("Failed to parse the resource: {}", e))),
         }
