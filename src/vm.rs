@@ -616,10 +616,13 @@ impl<'a, C: RPCCaller> VMDiskController<'a, C> {
 mod test {
 
     use super::*;
-    use crate::prelude::*;
+    use crate::{
+        common::permissions::flags::{GRP_A, OTH_UMA, USR_UMA},
+        prelude::*,
+    };
 
     #[test]
-    fn virtual_machine_allocate_delete() {
+    fn virtual_machine_complex() {
         let client = ClientXMLRPC::new(
             String::from("oneadmin:pDi4mFBHue"),
             String::from("http://192.168.33.10:2633/RPC2"),
@@ -632,7 +635,10 @@ mod test {
         tpl.put_str("NAME", "roca-test-vm");
         tpl.put_str("CPU", "1");
         tpl.put_str("MEMORY", "32");
+
+        // add custom pairs with same key, be careful, keys will be renamed uppercase
         tpl.put_str("custom", "test");
+        tpl.put_str("CUSTOM", "test2");
 
         let allocate_response = controller.virtual_machines().allocate(tpl, false);
 
@@ -643,7 +649,14 @@ mod test {
 
         let vm_controller = controller.virtual_machine(vm_id);
 
-        match vm_controller.info() {
+        // let's modify permissions
+        let chmod_response = vm_controller.chmod(Permissions(USR_UMA | GRP_A | OTH_UMA));
+        println!("{:?}", chmod_response);
+        assert!(chmod_response.is_ok());
+
+        // check elements values
+        let infos = vm_controller.info();
+        match infos {
             Ok(infos) => {
                 assert!(infos.id().is_ok());
                 assert!(infos.id().unwrap() > 0);
@@ -659,7 +672,21 @@ mod test {
 
                 let perms = infos.permissions();
                 assert!(perms.is_ok());
-                assert_eq!(perms.unwrap().to_string(), "um-------");
+                assert_eq!(perms.unwrap().to_string(), "uma--auma");
+
+                // retrieve first pair with "custom" key
+                let custom_key: Result<String, Errors> = infos.user_template().get_str("CUSTOM");
+                println!("custom key: {:?}", custom_key);
+                assert!(custom_key.is_ok());
+                assert_eq!(custom_key.unwrap(), "test".to_owned());
+
+                // modify the template content
+                let mut infos = infos;
+                let res = infos.user_template_mut().del("CUSTOM");
+                assert!(res.is_ok());
+
+                let custom_key = infos.template().get_str("CUSTOM");
+                assert!(custom_key.is_err());
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),
         }
