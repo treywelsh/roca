@@ -248,29 +248,35 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
         self.controller.parse_resp(resp_txt)
     }
 
-    // TODO: i32 is bigger than needed
-    // TODO: introduce a permission type... ?
-    /// Changes the permissions of a VM. If any perm is -1 it will not change
+    /// Changes the permissions of a VM
     pub fn chmod(&self, perms_oct: Permissions) -> Result<(), Errors> {
         let permissions_bits = PermissionsBits::from(perms_oct);
 
+        self.chmod_raw(permissions_bits)
+    }
+
+    /// Compared to chmod this method allow to pass -1 for each bit in order to
+    /// leave bit unchanged
+    pub fn chmod_raw(&self, perms_bits: PermissionsBits) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.vm.chmod",
             vec![
                 self.id.into(),
-                (permissions_bits.0 as i32).into(),
-                (permissions_bits.1 as i32).into(),
-                (permissions_bits.2 as i32).into(),
-                (permissions_bits.3 as i32).into(),
-                (permissions_bits.4 as i32).into(),
-                (permissions_bits.5 as i32).into(),
-                (permissions_bits.6 as i32).into(),
-                (permissions_bits.7 as i32).into(),
-                (permissions_bits.8 as i32).into(),
+                (perms_bits.0 as i32).into(),
+                (perms_bits.1 as i32).into(),
+                (perms_bits.2 as i32).into(),
+                (perms_bits.3 as i32).into(),
+                (perms_bits.4 as i32).into(),
+                (perms_bits.5 as i32).into(),
+                (perms_bits.6 as i32).into(),
+                (perms_bits.7 as i32).into(),
+                (perms_bits.8 as i32).into(),
             ],
         )?;
 
-        self.controller.parse_resp(resp_txt)
+        self.controller.parse_id_resp(resp_txt)?;
+
+        Ok(())
     }
 
     /// Changes the owner/group of a VM. If uid or gid is -1 it will not change
