@@ -12,6 +12,7 @@ pub enum Errors {
     HTTPReq(String),
     HTTPRespHandling(String),
     Roca(String),
+    Template(String),
 }
 
 impl From<xml_doc::Error> for Errors {
@@ -57,6 +58,7 @@ impl Display for Errors {
             Self::HTTPRespHandling(e) => write!(f, "roca: HTTP response handling error: {}", e),
             Self::OpenNebula(e) => write!(f, "roca: OpenNebula error: {}", e),
             Self::Roca(e) => write!(f, "roca library internal error: {}", e),
+            Self::Template(e) => write!(f, "roca failed template operation: {}", e),
         }
     }
 }

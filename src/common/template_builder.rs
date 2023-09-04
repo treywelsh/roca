@@ -1,7 +1,9 @@
+use std::fmt::format;
 use std::fmt::Display;
 
 use xml_doc::{Document, Element};
 
+use crate::common::errors::Errors;
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_getters::TemplateGetter;
 
@@ -36,6 +38,23 @@ impl TemplateBuilder {
         Element::build(name)
             .text_content(value)
             .push_to(&mut self.document, self.element);
+    }
+
+    /// Delete all pairs with key "name"
+    pub fn del(&mut self, name: &str) -> Result<(), Errors> {
+        let elements = self.element.find_all(&self.document, name);
+        if elements.is_empty() {
+            return Err(Errors::Template(format!(
+                "can't delete {} from template: not found",
+                name,
+            )));
+        }
+
+        for e in elements {
+            e.detatch(&mut self.document)?;
+        }
+
+        Ok(())
     }
 }
 
