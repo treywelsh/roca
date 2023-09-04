@@ -7,7 +7,8 @@ use crate::common::permissions::Permissions;
 use crate::common::resource::{Resource, ResourceGetter};
 use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
 use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::Errors;
+use crate::common::template_mut::TemplateMut;
+use crate::common::{Errors, Template};
 use crate::controller::{Controller, RPCCaller};
 use crate::prelude::PermissionsBits;
 
@@ -57,6 +58,32 @@ impl GetPermissions for VirtualMachine {}
 impl Display for VirtualMachine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.resource.document.write_str().unwrap())
+    }
+}
+
+// Implement VM specific methods
+impl VirtualMachine {
+    /// Allow to retrieve the user template section of the VM
+    fn user_template(&self) -> Template {
+        let document = &self.get_resource().document;
+        let template = self
+            .get_resource()
+            .root
+            .find(document, "USER_TEMPLATE")
+            .unwrap();
+
+        Template::from_resource(document, template)
+    }
+
+    /// Allow to retrieve the mutable user template section of the VM
+    fn user_template_mut(&mut self) -> TemplateMut {
+        let resource = self.get_resource_mut();
+        let template = resource
+            .root
+            .find(&resource.document, "USER_TEMPLATE")
+            .unwrap();
+
+        TemplateMut::from_resource(&mut resource.document, template)
     }
 }
 
