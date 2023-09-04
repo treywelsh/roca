@@ -5,6 +5,7 @@ mod template;
 pub use template::Template;
 
 pub mod parameters;
+pub mod permissions;
 pub mod resource;
 pub mod resource_getters;
 pub mod resource_methods;

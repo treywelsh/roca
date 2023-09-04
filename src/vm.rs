@@ -3,11 +3,13 @@
 use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
+use crate::common::permissions::Permissions;
 use crate::common::resource::{Resource, ResourceGetter};
-use crate::common::resource_getters::{CommonGetters, Group, Owner};
+use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
+use crate::prelude::PermissionsBits;
 
 #[derive(Debug)]
 pub struct VirtualMachineController<'a, C: RPCCaller> {
@@ -48,8 +50,9 @@ impl ResourceGetter for VirtualMachine {
     }
 }
 
-impl Group for VirtualMachine {}
-impl Owner for VirtualMachine {}
+impl GetGroup for VirtualMachine {}
+impl GetOwner for VirtualMachine {}
+impl GetPermissions for VirtualMachine {}
 
 impl Display for VirtualMachine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -221,31 +224,22 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
     // TODO: i32 is bigger than needed
     // TODO: introduce a permission type... ?
     /// Changes the permissions of a VM. If any perm is -1 it will not change
-    pub fn chmod(
-        &self,
-        uu: i32,
-        um: i32,
-        ua: i32,
-        gu: i32,
-        gm: i32,
-        ga: i32,
-        ou: i32,
-        om: i32,
-        oa: i32,
-    ) -> Result<(), Errors> {
+    pub fn chmod(&self, perms_oct: Permissions) -> Result<(), Errors> {
+        let permissions_bits = PermissionsBits::from(perms_oct);
+
         let resp_txt = self.controller.client.call(
             "one.vm.chmod",
             vec![
                 self.id.into(),
-                uu.into(),
-                um.into(),
-                ua.into(),
-                gu.into(),
-                gm.into(),
-                ga.into(),
-                ou.into(),
-                om.into(),
-                oa.into(),
+                (permissions_bits.0 as i32).into(),
+                (permissions_bits.1 as i32).into(),
+                (permissions_bits.2 as i32).into(),
+                (permissions_bits.3 as i32).into(),
+                (permissions_bits.4 as i32).into(),
+                (permissions_bits.5 as i32).into(),
+                (permissions_bits.6 as i32).into(),
+                (permissions_bits.7 as i32).into(),
+                (permissions_bits.8 as i32).into(),
             ],
         )?;
 
@@ -589,7 +583,7 @@ impl<'a, C: RPCCaller> VMDiskController<'a, C> {
 mod test {
 
     use super::*;
-    use crate::{client::ClientXMLRPC, prelude::*};
+    use crate::prelude::*;
 
     #[test]
     fn virtual_machine_allocate_delete() {
@@ -630,8 +624,9 @@ mod test {
                 assert!(infos.groupname().is_ok());
                 assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
 
-                assert!(infos.groupname().is_ok());
-                assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
+                let perms = infos.permissions();
+                assert!(perms.is_ok());
+                assert_eq!(perms.unwrap().to_string(), "um-------");
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),
         }

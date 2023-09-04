@@ -4,7 +4,7 @@ use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
 use crate::common::resource::{Resource, ResourceGetter};
-use crate::common::resource_getters::{CommonGetters, Group};
+use crate::common::resource_getters::{CommonGetters, GetGroup};
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 
@@ -39,7 +39,7 @@ impl ResourceGetter for User {
     }
 }
 
-impl Group for User {}
+impl GetGroup for User {}
 
 impl Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

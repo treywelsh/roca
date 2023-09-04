@@ -13,9 +13,9 @@ pub mod vm;
 pub mod prelude {
     pub use crate::client::ClientXMLRPC;
     pub use crate::common::parameters;
-    pub use crate::common::resource::Resource;
-    pub use crate::common::resource::ResourceGetter;
-    pub use crate::common::resource_getters::{CommonGetters, Group, Owner};
+    pub use crate::common::permissions::{Permissions, PermissionsBits};
+    pub use crate::common::resource::{Resource, ResourceGetter};
+    pub use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
     pub use crate::common::template_builder::TemplateBuilder;
     pub use crate::common::template_getters::TemplateCommonGetters;
     pub use crate::controller::Controller;

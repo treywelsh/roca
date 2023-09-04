@@ -1,8 +1,11 @@
+use xml_doc::{Document, Element};
+
 use crate::common::errors::Errors;
 use crate::common::resource::ResourceGetter;
 
 use crate::common::template::Template;
 use crate::common::template_mut::TemplateMut;
+use crate::prelude::{Permissions, PermissionsBits};
 
 impl<T> CommonGetters for T where T: ResourceGetter {}
 
@@ -39,7 +42,7 @@ pub trait CommonGetters: ResourceGetter {
     }
 }
 
-pub trait Owner: ResourceGetter {
+pub trait GetOwner: ResourceGetter {
     fn uid(&self) -> Result<String, Errors> {
         self.get_resource()
             .get_str(&self.get_resource().root, "UID")
@@ -50,7 +53,7 @@ pub trait Owner: ResourceGetter {
     }
 }
 
-pub trait Group: ResourceGetter {
+pub trait GetGroup: ResourceGetter {
     fn gid(&self) -> Result<i64, Errors> {
         self.get_resource()
             .get_i64(&self.get_resource().root, "GID")
@@ -58,5 +61,42 @@ pub trait Group: ResourceGetter {
     fn groupname(&self) -> Result<String, Errors> {
         self.get_resource()
             .get_str(&self.get_resource().root, "GNAME")
+    }
+}
+
+pub trait GetPermissions: ResourceGetter {
+    fn permissions(&self) -> Result<Permissions, Errors> {
+        let document = &self.get_resource().document;
+        let permissions = self
+            .get_resource()
+            .root
+            .find(document, "PERMISSIONS")
+            .unwrap();
+
+        let uu = get_perm_field(document, permissions, "OWNER_U")?;
+        let um = get_perm_field(document, permissions, "OWNER_M")?;
+        let ua = get_perm_field(document, permissions, "OWNER_A")?;
+        let gu = get_perm_field(document, permissions, "GROUP_U")?;
+        let gm = get_perm_field(document, permissions, "GROUP_M")?;
+        let ga = get_perm_field(document, permissions, "GROUP_A")?;
+        let ou = get_perm_field(document, permissions, "OTHER_U")?;
+        let om = get_perm_field(document, permissions, "OTHER_M")?;
+        let oa = get_perm_field(document, permissions, "OTHER_A")?;
+
+        Ok(PermissionsBits(uu, um, ua, gu, gm, ga, ou, om, oa).into())
+    }
+}
+
+fn get_perm_field(document: &Document, perm_elem: Element, name: &str) -> Result<u8, Errors> {
+    let perm_field = match perm_elem.find(document, name) {
+        Some(e) => e,
+        None => return Err(Errors::NotFound("OWNER_U".to_string())),
+    };
+
+    // this pair is not expected to have a childs
+    if perm_field.children(document).len() > 1 {
+        Err(Errors::HasChilds("OWNER_U".to_string()))
+    } else {
+        Ok(perm_field.text_content(document).parse::<u8>()?)
     }
 }
