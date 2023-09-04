@@ -69,15 +69,15 @@ impl Debug for PermissionsBits {
 impl From<Permissions> for PermissionsBits {
     fn from(perms_oct: Permissions) -> Self {
         PermissionsBits(
-            (perms_oct.0 & 0o000001) as u8,
-            (perms_oct.0 & 0o000002) as u8,
-            (perms_oct.0 & 0o000004) as u8,
-            ((perms_oct.0 & 0o000010) >> 3) as u8,
-            ((perms_oct.0 & 0o000020) >> 3) as u8,
-            ((perms_oct.0 & 0o000040) >> 3) as u8,
+            ((perms_oct.0 & 0o000400) >> 8) as u8,
+            ((perms_oct.0 & 0o000200) >> 7) as u8,
             ((perms_oct.0 & 0o000100) >> 6) as u8,
-            ((perms_oct.0 & 0o000200) >> 6) as u8,
-            ((perms_oct.0 & 0o000400) >> 6) as u8,
+            ((perms_oct.0 & 0o000040) >> 5) as u8,
+            ((perms_oct.0 & 0o000020) >> 4) as u8,
+            ((perms_oct.0 & 0o000010) >> 3) as u8,
+            ((perms_oct.0 & 0o000004) >> 2) as u8,
+            ((perms_oct.0 & 0o000002) >> 1) as u8,
+            (perms_oct.0 & 0o000001) as u8,
         )
     }
 }
