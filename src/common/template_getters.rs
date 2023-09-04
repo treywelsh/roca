@@ -10,6 +10,8 @@ pub trait TemplateGetter<'a> {
 
 pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
     // TODO: reuse methods from resource ?
+
+    /// Retrieve value of the first element
     fn get_str(&self, name: &str) -> Result<String, Errors> {
         let tpl_element = self.get_element();
         let tpl_document = self.get_document();
@@ -27,6 +29,7 @@ pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
         }
     }
 
+    /// Retrieve integer value of the first element
     fn get_i64(&self, name: &str) -> Result<i64, Errors> {
         let value_str = self.get_str(name)?;
 
