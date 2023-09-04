@@ -39,9 +39,20 @@ impl<'a> TemplateMut<'a> {
             .push_to(self.document, self.element);
     }
 
+    /// Delete all pairs with key "name"
     pub fn del(&mut self, name: &str) -> Result<(), Errors> {
-        let e = self.element.find(self.document, name).unwrap();
+        let elements = self.element.find_all(self.document, name);
+        if elements.is_empty() {
+            return Err(Errors::Template(format!(
+                "can't delete {} from template: not found",
+                name,
+            )));
+        }
 
-        Ok(e.detatch(self.document)?)
+        for e in elements {
+            e.detatch(self.document)?;
+        }
+
+        Ok(())
     }
 }
