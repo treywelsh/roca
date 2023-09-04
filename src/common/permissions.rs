@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 // Rights bits:
 // U for use
@@ -47,6 +47,22 @@ impl From<PermissionsBits> for Permissions {
                 + ((bits.7 as u16) << 1)
                 + (bits.8 as u16),
         )
+    }
+}
+
+impl Debug for PermissionsBits {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("PermissionsBits")
+            .field(&self.0)
+            .field(&self.1)
+            .field(&self.2)
+            .field(&self.3)
+            .field(&self.4)
+            .field(&self.5)
+            .field(&self.6)
+            .field(&self.7)
+            .field(&self.8)
+            .finish()
     }
 }
 
