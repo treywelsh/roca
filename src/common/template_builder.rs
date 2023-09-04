@@ -69,3 +69,44 @@ impl Display for TemplateBuilder {
         f.write_str(&self.document.write_str().unwrap())
     }
 }
+
+#[cfg(test)]
+mod builder {
+    use crate::{
+        common::permissions::{flags, Permissions},
+        prelude::{TemplateBuilder, TemplateCommonGetters},
+    };
+
+    #[test]
+    fn add_retrieve_elements() {
+        let mut tpl = TemplateBuilder::new();
+
+        tpl.put_str("tag1", "value1");
+        tpl.put_str("tag2", "value2");
+
+        let tag1 = tpl.get_str("tag1");
+
+        // retrieve first value
+        assert!(tag1.is_ok());
+        assert_eq!(tag1.unwrap(), "value1");
+    }
+
+    #[test]
+    fn add_delete_elements() {
+        let mut tpl = TemplateBuilder::new();
+
+        tpl.put_str("tag1", "value1");
+        tpl.put_str("tag1", "value2");
+
+        // delete all elements
+        tpl.del("tag1");
+
+        let tag1 = tpl.get_str("tag1");
+        print!("{:?}", tag1);
+        assert!(tag1.is_err());
+
+        tpl.put_str("tag1", "value3");
+        let tag1 = tpl.get_str("tag1");
+        assert_eq!(tag1.unwrap(), "value3");
+    }
+}
