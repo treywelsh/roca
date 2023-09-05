@@ -7,6 +7,7 @@ use crate::common::errors::Errors;
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_getters::TemplateGetter;
 
+/// Allow to build a template from scratch
 pub struct TemplateBuilder {
     document: Document,
     element: Element,

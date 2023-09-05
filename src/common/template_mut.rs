@@ -5,6 +5,7 @@ use crate::common::template_getters::TemplateGetter;
 
 use super::Errors;
 
+/// Allow to access and mutate the ressource template attributes
 pub struct TemplateMut<'a> {
     document: &'a mut Document,
     element: Element,

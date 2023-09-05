@@ -10,6 +10,7 @@ use crate::common::template_getters::TemplateGetter;
 
 // there's a lifetime because we inherit of a reference
 // to the document, coming from the resource structure
+/// Allow to access the resource template attributes
 pub struct Template<'a> {
     pub document: &'a Document, // it's ok when reading only, but what about writing ?
     pub element: Element,

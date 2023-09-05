@@ -7,6 +7,7 @@ use crate::common::template::Template;
 use crate::common::template_mut::TemplateMut;
 use crate::prelude::{Permissions, PermissionsBits};
 
+// blanket implementation
 impl<T> CommonGetters for T where T: ResourceGetter {}
 
 // TODO: rename ?
