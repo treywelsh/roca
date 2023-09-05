@@ -11,5 +11,6 @@ pub mod resource_getters;
 pub mod resource_methods;
 pub mod template_builder;
 pub mod template_elements;
+pub mod template_fmt;
 pub mod template_getters;
 pub mod template_mut;
