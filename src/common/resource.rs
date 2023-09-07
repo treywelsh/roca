@@ -54,11 +54,7 @@ impl TryFrom<&str> for Resource {
             Err(e) => return Err(e.into()),
         };
         let root = document.root_element().unwrap();
-        //let template = root.find(&document, "TEMPLATE").unwrap();
-        Ok(Resource {
-            document,
-            root,
-            //template,
-        })
+
+        Ok(Resource { document, root })
     }
 }

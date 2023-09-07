@@ -7,7 +7,6 @@ use crate::common::errors::Errors;
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_getters::TemplateGetter;
 
-use super::template_elements::Pair;
 use super::template_elements::Vector;
 
 /// Allow to build a template from scratch
