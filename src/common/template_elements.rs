@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::Errors;
+
 /// Pair is a developer friendly representation of a key, value pair
 
 #[derive(Debug)]
@@ -40,6 +42,18 @@ impl Vector {
 
     pub fn add_pair<T: Into<String>>(&mut self, k: T, v: T) {
         self.1.push(Pair::new(k, v))
+    }
+
+    pub fn get_str<T: Into<String>>(&self, k: T) -> Result<&str, Errors> {
+        let key = k.into();
+        let pairs: Vec<&Pair> = self.1.iter().filter(|&p| p.0 == key).collect();
+        if pairs.len() > 1 {
+            return Err(Errors::HasChilds(key));
+        } else if pairs.len() == 0 {
+            return Err(Errors::NotFound(key));
+        } else {
+            return Ok(pairs[0].1.as_str());
+        }
     }
 
     pub fn rm_pair<T: Into<String> + Copy>(&mut self, k: T) {

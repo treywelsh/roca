@@ -7,6 +7,9 @@ use crate::common::errors::Errors;
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_getters::TemplateGetter;
 
+use super::template_elements::Pair;
+use super::template_elements::Vector;
+
 /// Allow to build a template from scratch
 pub struct TemplateBuilder {
     document: Document,
@@ -34,12 +37,22 @@ impl TemplateBuilder {
         TemplateBuilder { document, element }
     }
 
-    // How to put a str inside of a vector ? Replace the whole vector ? if there's several vectors, replace all ?
     pub fn put_str(&mut self, name: &str, value: &str) {
         Element::build(name)
             .text_content(value)
             .push_to(&mut self.document, self.element);
     }
+
+    pub fn put_vector(&mut self, vec: Vector) {
+        let element = Element::build(vec.0).push_to(&mut self.document, self.element);
+        for p in vec.1 {
+            Element::build(p.0)
+                .text_content(p.1)
+                .push_to(&mut self.document, element);
+        }
+    }
+
+    //pub fn get_vector()
 
     /// Delete all pairs with key "name"
     pub fn del(&mut self, name: &str) -> Result<(), Errors> {
@@ -74,12 +87,12 @@ impl Display for TemplateBuilder {
 #[cfg(test)]
 mod builder {
     use crate::{
-        common::permissions::{flags, Permissions},
+        common::template_elements::Vector,
         prelude::{TemplateBuilder, TemplateCommonGetters},
     };
 
     #[test]
-    fn add_retrieve_elements() {
+    fn add_retrieve_pairs() {
         let mut tpl = TemplateBuilder::new();
 
         tpl.put_str("tag1", "value1");
@@ -93,7 +106,7 @@ mod builder {
     }
 
     #[test]
-    fn add_delete_elements() {
+    fn add_delete_pairs() {
         let mut tpl = TemplateBuilder::new();
 
         tpl.put_str("tag1", "value1");
@@ -109,5 +122,37 @@ mod builder {
         tpl.put_str("tag1", "value3");
         let tag1 = tpl.get_str("tag1");
         assert_eq!(tag1.unwrap(), "value3");
+    }
+
+    #[test]
+    fn fill_vector() {
+        let mut tpl = TemplateBuilder::new();
+
+        tpl.put_str("tag1", "value1");
+
+        let mut vec = Vector::new("vec1");
+        vec.add_pair("key", "value");
+        vec.add_pair("key2", "value2");
+
+        tpl.put_vector(vec);
+
+        // retrieve vector
+        let res = tpl.get_vector("vec1");
+        assert!(res.is_ok());
+        let vec1 = res.unwrap();
+
+        // retrieve pair from vector
+        let pair2 = vec1.get_str("key2");
+        assert!(pair2.is_ok());
+        assert_eq!(pair2.unwrap(), "value2");
+
+        let pair1 = vec1.get_str("key");
+        assert!(pair1.is_ok());
+        assert_eq!(pair1.unwrap(), "value");
+
+        let mut vec1 = vec1;
+        vec1.rm_pair("key");
+        let pair1 = vec1.get_str("key");
+        assert!(pair1.is_err());
     }
 }

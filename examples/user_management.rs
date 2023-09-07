@@ -61,13 +61,11 @@ fn main() {
     tpl.put_str("tag1", "value1");
     tpl.put_str("tag2", "value2");
 
-    //tpl.add_vector(Vector(
-    //    "tag_vec1".to_string(),
-    //    vec![
-    //        Pair("tag3".to_string(), "value3".to_string()),
-    //        Pair("tag4".to_string(), "value4".to_string()),
-    //    ],
-    //));
+    let mut vec = Vector::new("tag_vec1");
+    vec.put_str("tag3", "value3");
+    vec.put_str("tag4", "value4");
+
+    tpl.put_vector(vec);
 
     println!("update user with template: {}\n", tpl);
     if let Err(e) = ucontroller.update(tpl, parameters::UpdateType::Merge) {

@@ -61,7 +61,26 @@ pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
         Ok(vectors)
     }
 
-    fn get_vector(&'a self, name: &str) -> Result<Vec<Pair>, Errors> {
+    //fn get_vector_test1(&'a self, name: &str) -> Result<Vec<Pair>, Errors> {
+    //    let tpl_element = self.get_element();
+    //    let tpl_document = self.get_document();
+    //
+    //    let element = match tpl_element.find(tpl_document, name) {
+    //        Some(e) => e,
+    //        None => return Err(Errors::NotFound(name.to_string())),
+    //    };
+    //
+    //    let mut pairs = Vec::new();
+    //    for sub_element in element.child_elements(tpl_document) {
+    //        pairs.push(Pair(
+    //            sub_element.name(tpl_document).to_string(),
+    //            sub_element.text_content(tpl_document),
+    //        ));
+    //    }
+    //    Ok(pairs)
+    //}
+
+    fn get_vector(&'a self, name: &str) -> Result<Vector, Errors> {
         let tpl_element = self.get_element();
         let tpl_document = self.get_document();
 
@@ -77,6 +96,6 @@ pub trait TemplateCommonGetters<'a>: TemplateGetter<'a> {
                 sub_element.text_content(tpl_document),
             ));
         }
-        Ok(pairs)
+        Ok(Vector(name.into(), pairs))
     }
 }
