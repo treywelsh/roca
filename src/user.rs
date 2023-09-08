@@ -5,10 +5,10 @@ use std::fmt::Display;
 use crate::common::parameters::UpdateType;
 use crate::common::resource::{Resource, ResourceGetter};
 use crate::common::resource_getters::{CommonGetters, GetGroup};
+use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 
-use crate::prelude::TemplateCommonGetters;
 // TODO: remove this /
 use crate::rpc_noparam_method;
 

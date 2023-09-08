@@ -1,8 +1,8 @@
+use crate::common::template_builder::TemplateBuilder;
 use crate::common::template_elements::Vector;
 use crate::common::template_fmt::errors::Errors;
 use crate::common::template_fmt::lexer::Lexer;
 use crate::common::template_fmt::token::Tokens;
-use crate::prelude::TemplateBuilder;
 
 // syntax: https://github.com/OpenNebula/one/blob/2eb07ee1c16140f1aca4d778b2cc2d38ea291159/src/parsers/template_syntax.y
 
@@ -139,7 +139,7 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod parser_test {
 
-    use crate::prelude::TemplateCommonGetters;
+    use crate::common::template_getters::TemplateCommonGetters;
 
     use super::Parser;
 

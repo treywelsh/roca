@@ -1,13 +1,10 @@
 use std::fmt::Display;
-use std::str::FromStr;
 
 use xml_doc::{Document, Element};
 
 use crate::common::errors::Errors;
-use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::template_getters::TemplateGetter;
-
-use super::template_elements::Vector;
+use crate::common::template_elements::Vector;
+use crate::common::template_getters::{TemplateCommonGetters, TemplateGetter};
 
 /// Allow to build a template from scratch
 pub struct TemplateBuilder {
@@ -86,8 +83,8 @@ impl Display for TemplateBuilder {
 #[cfg(test)]
 mod builder {
     use crate::{
-        common::template_elements::Vector,
-        prelude::{TemplateBuilder, TemplateCommonGetters},
+        common::template_elements::Vector, common::template_getters::TemplateCommonGetters,
+        prelude::TemplateBuilder,
     };
 
     #[test]

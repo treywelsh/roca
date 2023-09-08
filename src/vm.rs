@@ -3,14 +3,13 @@
 use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
-use crate::common::permissions::Permissions;
+use crate::common::permissions::{Permissions, PermissionsBits};
 use crate::common::resource::{Resource, ResourceGetter};
 use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_mut::TemplateMut;
 use crate::common::{Errors, Template};
 use crate::controller::{Controller, RPCCaller};
-use crate::prelude::PermissionsBits;
 use crate::rpc_chmod_method;
 
 #[derive(Debug)]

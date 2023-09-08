@@ -3,9 +3,9 @@ use xml_doc::{Document, Element};
 use crate::common::errors::Errors;
 use crate::common::resource::ResourceGetter;
 
+use crate::common::permissions::{Permissions, PermissionsBits};
 use crate::common::template::Template;
 use crate::common::template_mut::TemplateMut;
-use crate::prelude::{Permissions, PermissionsBits};
 
 // blanket implementation
 impl<T> CommonGetters for T where T: ResourceGetter {}
