@@ -64,7 +64,7 @@ impl Display for VirtualMachine {
 // Implement VM specific methods
 impl VirtualMachine {
     /// Allow to retrieve the user template section of the VM
-    fn user_template(&self) -> Template {
+    pub fn user_template(&self) -> Template {
         let document = &self.get_resource().document;
         let template = self
             .get_resource()
@@ -76,7 +76,7 @@ impl VirtualMachine {
     }
 
     /// Allow to retrieve the mutable user template section of the VM
-    fn user_template_mut(&mut self) -> TemplateMut {
+    pub fn user_template_mut(&mut self) -> TemplateMut {
         let resource = self.get_resource_mut();
         let template = resource
             .root
