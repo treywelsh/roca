@@ -19,18 +19,23 @@ sudo apt install libssl-dev
 ## Implemented resources
 
 - user (partial)
+- virtual machine (partial)
 
 ## How to implement a new resource
 
 1. Create a struct with the name of the resource (like `User`), and 
-   add a `Resource` type field inside
+   add a `Resource` type field inside.
 2. implement trait `ResourceGetter` and define it's methods.
    Then `CommonGetters` trait with blanket implementation will be implemented automatically.
    It provides some generic methods (`id`, `name`, `get_str`, ...).
 3. Add more attributes getters in implementing traits with default methods, for instance: 
-   `impl Group for XXX {}` and
-   `impl Owner for XXX {}`
+   `impl GetGroup for XXX {}` and
+   `impl GetOwner for XXX {}`
+   `impl GetPermissions for XXX {}`
    Previously check if they are required: for instance an `User` resource shouldn't implement `Owner` because it doesn't have `UID` and `UNAME` fields in it's XML representation.
+
+
+For more, [see the architecture document](./architecture.md).
 
 ## TODOs
 
@@ -45,15 +50,3 @@ sudo apt install libssl-dev
   a string type if it's an error, or an ID if it's successful
   In `parse_id_resp` method of the controller we need to call response_from_str twice
 - implement iterators traits at least for resource pool
-
-## Note
-
-I tried a bunch of various XML crates (`quick-xml`, `xmltree`, [serde-xml-rs](https://github.com/tafia/quick-xml/issues/526#issuecomment-1434576848), `sxd-XXX`, `xml-doc`) to work with the partially dynamic XML. I didn't benchmark them, I only tried them to see how handy they are for my use case.
-
-Temporarily I chose `sxd-path` and `sxd-document` crates, however I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
-
-`xml-doc` is not maintained anymore but it appears to me that's a good fit for `roca` so I may want to provide bug fixes if needed.
-If it's a problem `xmltree` may be the nearest it's behavior.
-It's built on top of `quick-xml` making it a lot more easy to use.
-
-The code using sxd crate it available at `master_sxd_crate` repository branch.
