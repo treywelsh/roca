@@ -654,7 +654,7 @@ mod test {
 
                 // modify the template content
                 let mut infos = infos;
-                let res = infos.user_template_mut().del("CUSTOM");
+                let res = infos.user_template_mut().rm("CUSTOM");
                 assert!(res.is_ok());
 
                 let custom_key = infos.template().get_str("CUSTOM");

@@ -92,7 +92,7 @@ impl<'a> Parser<'a> {
                             | Tokens::Number(value) => {
                                 // it's a pair inside of a vector
 
-                                vec.add_pair(&key, &value)
+                                vec.put_str(&key, &value)
                             }
                             _ => {
                                 return Err(Errors::Parser(format!(

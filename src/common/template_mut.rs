@@ -3,6 +3,7 @@ use xml_doc::{Document, Element};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_getters::TemplateGetter;
 
+use super::template_elements::Vector;
 use super::Errors;
 
 /// Allow to access and mutate the ressource template attributes
@@ -31,7 +32,7 @@ impl<'a> TemplateCommonGetters<'a> for TemplateMut<'a> {}
 
 impl<'a> TemplateMut<'a> {
     // TODO:
-    // add: vector, i64, float
+    // add: i64, float
     // allow to delete pair and vector
     // allow to add a pair inside of a vector
     pub fn put_str(&mut self, name: &str, value: &str) {
@@ -40,12 +41,21 @@ impl<'a> TemplateMut<'a> {
             .push_to(self.document, self.element);
     }
 
-    /// Delete all pairs with key "name"
-    pub fn del(&mut self, name: &str) -> Result<(), Errors> {
+    pub fn put_vector(&mut self, vec: Vector) {
+        let element = Element::build(vec.0).push_to(self.document, self.element);
+        for p in vec.1 {
+            Element::build(p.0)
+                .text_content(p.1)
+                .push_to(self.document, element);
+        }
+    }
+
+    /// Remove all pairs with key "name"
+    pub fn rm(&mut self, name: &str) -> Result<(), Errors> {
         let elements = self.element.find_all(self.document, name);
         if elements.is_empty() {
             return Err(Errors::Template(format!(
-                "can't delete {} from template: not found",
+                "can't remove {} from template: not found",
                 name,
             )));
         }

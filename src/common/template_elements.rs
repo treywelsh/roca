@@ -40,7 +40,7 @@ impl Vector {
         Vector(k.into(), Vec::new())
     }
 
-    pub fn add_pair<T: Into<String>>(&mut self, k: T, v: T) {
+    pub fn put_str<T: Into<String>>(&mut self, k: T, v: T) {
         self.1.push(Pair::new(k, v))
     }
 
@@ -48,16 +48,32 @@ impl Vector {
         let key = k.into();
         let pairs: Vec<&Pair> = self.1.iter().filter(|&p| p.0 == key).collect();
         if pairs.len() > 1 {
-            return Err(Errors::HasChilds(key));
-        } else if pairs.len() == 0 {
-            return Err(Errors::NotFound(key));
+            Err(Errors::HasChilds(key))
+        } else if pairs.is_empty() {
+            Err(Errors::NotFound(key))
         } else {
-            return Ok(pairs[0].1.as_str());
+            Ok(pairs[0].1.as_str())
         }
     }
 
-    pub fn rm_pair<T: Into<String> + Copy>(&mut self, k: T) {
+    fn get_i64(&self, name: &str) -> Result<i64, Errors> {
+        let value_str = self.get_str(name)?;
+
+        let v = value_str.parse()?;
+        Ok(v)
+    }
+
+    pub fn rm<T: Into<String> + Copy>(&mut self, k: T) -> Result<(), Errors> {
+        let pairs_len = self.1.len();
         self.1.retain(|pair| pair.0 != k.into());
+        if pairs_len == self.1.len() {
+            return Err(Errors::Template(format!(
+                "can't remove {} from template: not found",
+                k.into(),
+            )));
+        }
+
+        Ok(())
     }
 }
 

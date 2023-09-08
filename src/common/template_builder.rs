@@ -53,12 +53,12 @@ impl TemplateBuilder {
 
     //pub fn get_vector()
 
-    /// Delete all pairs with key "name"
-    pub fn del(&mut self, name: &str) -> Result<(), Errors> {
+    /// Remove all pairs with key "name"
+    pub fn rm(&mut self, name: &str) -> Result<(), Errors> {
         let elements = self.element.find_all(&self.document, name);
         if elements.is_empty() {
             return Err(Errors::Template(format!(
-                "can't delete {} from template: not found",
+                "can't remove {} from template: not found",
                 name,
             )));
         }
@@ -111,8 +111,8 @@ mod builder {
         tpl.put_str("tag1", "value1");
         tpl.put_str("tag1", "value2");
 
-        // delete all elements
-        tpl.del("tag1");
+        // remove all elements
+        tpl.rm("tag1");
 
         let tag1 = tpl.get_str("tag1");
         print!("{:?}", tag1);
@@ -124,14 +124,14 @@ mod builder {
     }
 
     #[test]
-    fn fill_vector() {
+    fn add_delete_vector() {
         let mut tpl = TemplateBuilder::new();
 
         tpl.put_str("tag1", "value1");
 
         let mut vec = Vector::new("vec1");
-        vec.add_pair("key", "value");
-        vec.add_pair("key2", "value2");
+        vec.put_str("key", "value");
+        vec.put_str("key2", "value2");
 
         tpl.put_vector(vec);
 
@@ -150,8 +150,15 @@ mod builder {
         assert_eq!(pair1.unwrap(), "value");
 
         let mut vec1 = vec1;
-        vec1.rm_pair("key");
+
+        // remove pair
+        vec1.rm("key");
         let pair1 = vec1.get_str("key");
         assert!(pair1.is_err());
+
+        // remove vector
+        tpl.rm("vec1");
+        let res = tpl.get_vector("vec1");
+        assert!(res.is_err());
     }
 }
