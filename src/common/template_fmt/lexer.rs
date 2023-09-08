@@ -1,4 +1,4 @@
-use std::{iter::Peekable, str::Chars};
+use std::str::Chars;
 
 use crate::common::template_fmt::token::Tokens;
 
@@ -71,6 +71,7 @@ impl<'a> Lexer<'a> {
                     str_value.push(ch);
                     self.read_char();
 
+                    // manage escaped double quotes in the string
                     if self.ch.is_some() && self.ch.unwrap() == '\\' {
                         str_value.push('\\');
                         self.read_char();

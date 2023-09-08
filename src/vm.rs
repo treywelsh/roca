@@ -2,10 +2,13 @@
 
 use std::fmt::Display;
 
+use xml_doc::{Document, Element};
+
 use crate::common::parameters::UpdateType;
 use crate::common::permissions::{Permissions, PermissionsBits};
-use crate::common::resource::{Resource, ResourceGetter};
+use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
 use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
+use crate::common::resource_pool::{build_pool, ResourcePool};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_mut::TemplateMut;
 use crate::common::{Errors, Template};
@@ -35,19 +38,56 @@ pub struct VMNICController<'a, C: RPCCaller> {
     pub id: i32,
 }
 
+pub struct VirtualMachinePool {
+    resource: ResourcePool,
+}
+
+impl ResourceGetter for VirtualMachinePool {
+    fn get_internal(&self) -> (&Document, &Element) {
+        (&self.resource.document, &self.resource.root)
+    }
+}
+
+impl GetGroup for VirtualMachinePool {}
+impl GetOwner for VirtualMachinePool {}
+
+impl Display for VirtualMachinePool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.resource.document.write_str().unwrap())
+    }
+}
+
+impl VirtualMachinePool {
+    /// Allow to retrieve the user template section of the VM
+    pub fn user_template(&self) -> Template {
+        let (document, element) = self.get_internal();
+
+        let template = element.find(document, "USER_TEMPLATE").unwrap();
+
+        Template::from_resource(document, template)
+    }
+
+    // TODO: return state string
+    fn state(&self) -> &'static str {
+        todo!()
+    }
+}
+
 pub struct VirtualMachine {
     resource: Resource,
 }
 
+// read only
 impl ResourceGetter for VirtualMachine {
-    // read only
-    fn get_resource(&self) -> &Resource {
-        &self.resource
+    fn get_internal(&self) -> (&xml_doc::Document, &xml_doc::Element) {
+        (&self.resource.document, &self.resource.root)
     }
+}
 
-    // read-write
-    fn get_resource_mut(&mut self) -> &mut Resource {
-        &mut self.resource
+// read-write
+impl ResourceGetterMut for VirtualMachine {
+    fn get_internal_mut(&mut self) -> (&mut xml_doc::Document, &mut xml_doc::Element) {
+        (&mut self.resource.document, &mut self.resource.root)
     }
 }
 
@@ -65,25 +105,24 @@ impl Display for VirtualMachine {
 impl VirtualMachine {
     /// Allow to retrieve the user template section of the VM
     pub fn user_template(&self) -> Template {
-        let document = &self.get_resource().document;
-        let template = self
-            .get_resource()
-            .root
-            .find(document, "USER_TEMPLATE")
-            .unwrap();
+        let (document, element) = self.get_internal();
+
+        let template = element.find(document, "USER_TEMPLATE").unwrap();
 
         Template::from_resource(document, template)
     }
 
     /// Allow to retrieve the mutable user template section of the VM
     pub fn user_template_mut(&mut self) -> TemplateMut {
-        let resource = self.get_resource_mut();
-        let template = resource
-            .root
-            .find(&resource.document, "USER_TEMPLATE")
-            .unwrap();
+        let (document, element) = self.get_internal_mut();
+        let template = element.find(&document, "USER_TEMPLATE").unwrap();
 
-        TemplateMut::from_resource(&mut resource.document, template)
+        TemplateMut::from_resource(document, template)
+    }
+
+    // TODO: return state string
+    fn state(&self) -> &'static str {
+        todo!()
     }
 }
 
@@ -101,6 +140,35 @@ impl<'a, C: RPCCaller> VirtualMachinesController<'a, C> {
         let id = self.controller.parse_id_resp(resp_txt)?;
 
         Ok(id)
+    }
+
+    pub fn info(&self) -> Result<Vec<VirtualMachinePool>, Errors> {
+        let resp_txt = self.controller.client.call(
+            "one.vmpool.info",
+            vec![(-1).into(), (-1).into(), (-1).into(), (-1).into()],
+        )?;
+
+        let body = self.controller.parse_body_resp(resp_txt)?;
+
+        let mut vms = Vec::new();
+
+        match build_pool(body.as_str(), "VM") {
+            Ok(elements) => {
+                for vm in elements {
+                    vms.push(VirtualMachinePool {
+                        resource: ResourcePool {
+                            document: vm.document,
+                            root: vm.root,
+                        },
+                    })
+                }
+                Ok(vms)
+            }
+            Err(e) => Err(Errors::Roca(format!(
+                "Failed to parse the resource pool: {}",
+                e
+            ))),
+        }
     }
 }
 
@@ -592,18 +660,9 @@ mod test {
         prelude::*,
     };
 
-    #[test]
-    fn virtual_machine_complex() {
-        let client = ClientXMLRPC::new(
-            String::from("oneadmin:pDi4mFBHue"),
-            String::from("http://192.168.33.10:2633/RPC2"),
-        );
-
-        // Create the virtual_machine
-        let controller = Controller::new(client);
-
+    fn create_vm(controller: &Controller<ClientXMLRPC>, name: &str) -> i32 {
         let mut tpl = TemplateBuilder::new();
-        tpl.put_str("NAME", "roca-test-vm");
+        tpl.put_str("NAME", name);
         tpl.put_str("CPU", "1");
         tpl.put_str("MEMORY", "32");
 
@@ -617,6 +676,75 @@ mod test {
         assert!(allocate_response.is_ok());
         let vm_id = allocate_response.unwrap();
         assert!(vm_id > 0);
+
+        vm_id
+    }
+
+    fn destroy_vm(vm_controller: VirtualMachineController<ClientXMLRPC>) {
+        // Terminate the virtual_machine
+        let terminate_response = vm_controller.action(Action::TerminateHard);
+        println!("{:?}", terminate_response);
+
+        assert!(terminate_response.is_ok());
+    }
+
+    #[test]
+    fn virtual_machine_pool() {
+        let client = ClientXMLRPC::new(
+            String::from("oneadmin:pDi4mFBHue"),
+            String::from("http://192.168.33.10:2633/RPC2"),
+        );
+
+        // Create the virtual_machine
+        let controller = Controller::new(client);
+
+        let vm_id = create_vm(&controller, "roca-test-vm-pool");
+        let vm_controller = controller.virtual_machine(vm_id);
+
+        let pool_infos = controller.virtual_machines().info();
+        assert!(pool_infos.is_ok());
+
+        let vms = pool_infos.unwrap();
+
+        for vm in vms {
+            // look for our VM in the pool
+            assert!(vm.name().is_ok());
+
+            if vm.name().unwrap() != "roca-test-vm-pool" {
+                continue;
+            }
+
+            assert!(vm.id().is_ok());
+            assert!(vm.id().unwrap() > 0);
+
+            assert!(vm.gid().is_ok());
+            assert_eq!(vm.gid().unwrap(), 0);
+
+            assert!(vm.groupname().is_ok());
+            assert_eq!(vm.groupname().unwrap(), "oneadmin".to_owned());
+
+            println!("{}", vm);
+
+            // retrieve first pair with "custom" key
+            let memory = vm.template().get_i64("MEMORY");
+            assert!(memory.is_ok());
+            assert_eq!(memory.unwrap(), 32);
+        }
+
+        destroy_vm(vm_controller)
+    }
+
+    #[test]
+    fn virtual_machine_complex() {
+        let client = ClientXMLRPC::new(
+            String::from("oneadmin:pDi4mFBHue"),
+            String::from("http://192.168.33.10:2633/RPC2"),
+        );
+
+        // Create the virtual_machine
+        let controller = Controller::new(client);
+
+        let vm_id = create_vm(&controller, "roca-test-vm");
 
         let vm_controller = controller.virtual_machine(vm_id);
 
@@ -662,10 +790,6 @@ mod test {
             Err(e) => panic!("Error on virtual_machine info: {}", e),
         }
 
-        // Terminate the virtual_machine
-        let terminate_response = vm_controller.action(Action::TerminateHard);
-        println!("{:?}", terminate_response);
-
-        assert!(terminate_response.is_ok());
+        destroy_vm(vm_controller);
     }
 }

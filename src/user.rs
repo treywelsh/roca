@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
-use crate::common::resource::{Resource, ResourceGetter};
+use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
 use crate::common::resource_getters::{CommonGetters, GetGroup};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::Errors;
@@ -27,15 +27,18 @@ pub struct User {
     resource: Resource,
 }
 
+// read only
 impl ResourceGetter for User {
-    // read only
-    fn get_resource(&self) -> &Resource {
-        &self.resource
+    fn get_internal(&self) -> (&xml_doc::Document, &xml_doc::Element) {
+        (&self.resource.document, &self.resource.root)
     }
+}
 
-    // read-write
-    fn get_resource_mut(&mut self) -> &mut Resource {
-        &mut self.resource
+// read-write
+// read-write
+impl ResourceGetterMut for User {
+    fn get_internal_mut(&mut self) -> (&mut xml_doc::Document, &mut xml_doc::Element) {
+        (&mut self.resource.document, &mut self.resource.root)
     }
 }
 

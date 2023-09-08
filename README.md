@@ -39,6 +39,7 @@ For more, [see the architecture document](./architecture.md).
 
 ## TODOs
 
+- be more verbose on thread safety
 - merge resource and template_builder ?
 - implement pool methods
 - fix all TODOs
