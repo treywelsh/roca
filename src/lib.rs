@@ -9,6 +9,7 @@ pub mod common;
 pub mod controller;
 pub mod user;
 pub mod vm;
+pub mod vm_pool;
 
 pub mod prelude {
     pub use crate::client::ClientXMLRPC;

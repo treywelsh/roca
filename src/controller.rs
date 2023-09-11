@@ -1,7 +1,8 @@
 //use crate::client::Response;
 use crate::common::Errors;
 use crate::user::{UserController, UsersController};
-use crate::vm::{VirtualMachineController, VirtualMachinesController};
+use crate::vm::VirtualMachineController;
+use crate::vm_pool::VirtualMachinesController;
 
 use serde_xmlrpc::Value;
 

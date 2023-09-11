@@ -22,11 +22,6 @@ pub struct VirtualMachineController<'a, C: RPCCaller> {
 }
 
 #[derive(Debug)]
-pub struct VirtualMachinesController<'a, C: RPCCaller> {
-    pub controller: &'a Controller<C>,
-}
-
-#[derive(Debug)]
 pub struct VMDiskController<'a, C: RPCCaller> {
     pub vm_controller: &'a VirtualMachineController<'a, C>,
     pub id: i32,
@@ -36,41 +31,6 @@ pub struct VMDiskController<'a, C: RPCCaller> {
 pub struct VMNICController<'a, C: RPCCaller> {
     pub vm_controller: &'a VirtualMachineController<'a, C>,
     pub id: i32,
-}
-
-pub struct VirtualMachinePool {
-    resource: ResourcePool,
-}
-
-impl ResourceGetter for VirtualMachinePool {
-    fn get_internal(&self) -> (&Document, &Element) {
-        (&self.resource.document, &self.resource.root)
-    }
-}
-
-impl GetGroup for VirtualMachinePool {}
-impl GetOwner for VirtualMachinePool {}
-
-impl Display for VirtualMachinePool {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.resource.document.write_str().unwrap())
-    }
-}
-
-impl VirtualMachinePool {
-    /// Allow to retrieve the user template section of the VM
-    pub fn user_template(&self) -> Template {
-        let (document, element) = self.get_internal();
-
-        let template = element.find(document, "USER_TEMPLATE").unwrap();
-
-        Template::from_resource(document, template)
-    }
-
-    // TODO: return state string
-    fn state(&self) -> &'static str {
-        todo!()
-    }
 }
 
 pub struct VirtualMachine {
@@ -101,23 +61,15 @@ impl Display for VirtualMachine {
     }
 }
 
-// Implement VM specific methods
-impl VirtualMachine {
+// Shared behavior between VirtualMachine and VirtualMachinePool
+pub trait VMShared: ResourceGetter {
     /// Allow to retrieve the user template section of the VM
-    pub fn user_template(&self) -> Template {
+    fn user_template(&self) -> Template {
         let (document, element) = self.get_internal();
 
         let template = element.find(document, "USER_TEMPLATE").unwrap();
 
         Template::from_resource(document, template)
-    }
-
-    /// Allow to retrieve the mutable user template section of the VM
-    pub fn user_template_mut(&mut self) -> TemplateMut {
-        let (document, element) = self.get_internal_mut();
-        let template = element.find(&document, "USER_TEMPLATE").unwrap();
-
-        TemplateMut::from_resource(document, template)
     }
 
     // TODO: return state string
@@ -126,49 +78,16 @@ impl VirtualMachine {
     }
 }
 
-impl<'a, C: RPCCaller> VirtualMachinesController<'a, C> {
-    pub fn allocate<T: TemplateCommonGetters<'a> + Display>(
-        &self,
-        template: T,
-        pending: bool,
-    ) -> Result<i32, Errors> {
-        let resp_txt = self.controller.client.call(
-            "one.vm.allocate",
-            vec![template.to_string().into(), pending.into()],
-        )?;
+impl VMShared for VirtualMachine {}
 
-        let id = self.controller.parse_id_resp(resp_txt)?;
+// Implement VM specific methods
+impl VirtualMachine {
+    /// Allow to retrieve the mutable user template section of the VM
+    pub fn user_template_mut(&mut self) -> TemplateMut {
+        let (document, element) = self.get_internal_mut();
+        let template = element.find(&document, "USER_TEMPLATE").unwrap();
 
-        Ok(id)
-    }
-
-    pub fn info(&self) -> Result<Vec<VirtualMachinePool>, Errors> {
-        let resp_txt = self.controller.client.call(
-            "one.vmpool.info",
-            vec![(-1).into(), (-1).into(), (-1).into(), (-1).into()],
-        )?;
-
-        let body = self.controller.parse_body_resp(resp_txt)?;
-
-        let mut vms = Vec::new();
-
-        match build_pool(body.as_str(), "VM") {
-            Ok(elements) => {
-                for vm in elements {
-                    vms.push(VirtualMachinePool {
-                        resource: ResourcePool {
-                            document: vm.document,
-                            root: vm.root,
-                        },
-                    })
-                }
-                Ok(vms)
-            }
-            Err(e) => Err(Errors::Roca(format!(
-                "Failed to parse the resource pool: {}",
-                e
-            ))),
-        }
+        TemplateMut::from_resource(document, template)
     }
 }
 
@@ -491,20 +410,9 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
     }
 
     /*
+        Missing methods:
+
         monitoring
-
-        vmpool.infoextended
-        vmpool.infoset
-        vmpool.monitoring
-        vmpool.accounting
-        vmpool.showback
-        vmpool.calculateshowback
-    */
-
-    /*
-
-
-
     */
 }
 
@@ -686,52 +594,6 @@ mod test {
         println!("{:?}", terminate_response);
 
         assert!(terminate_response.is_ok());
-    }
-
-    #[test]
-    fn virtual_machine_pool() {
-        let client = ClientXMLRPC::new(
-            String::from("oneadmin:pDi4mFBHue"),
-            String::from("http://192.168.33.10:2633/RPC2"),
-        );
-
-        // Create the virtual_machine
-        let controller = Controller::new(client);
-
-        let vm_id = create_vm(&controller, "roca-test-vm-pool");
-        let vm_controller = controller.virtual_machine(vm_id);
-
-        let pool_infos = controller.virtual_machines().info();
-        assert!(pool_infos.is_ok());
-
-        let vms = pool_infos.unwrap();
-
-        for vm in vms {
-            // look for our VM in the pool
-            assert!(vm.name().is_ok());
-
-            if vm.name().unwrap() != "roca-test-vm-pool" {
-                continue;
-            }
-
-            assert!(vm.id().is_ok());
-            assert!(vm.id().unwrap() > 0);
-
-            assert!(vm.gid().is_ok());
-            assert_eq!(vm.gid().unwrap(), 0);
-
-            assert!(vm.groupname().is_ok());
-            assert_eq!(vm.groupname().unwrap(), "oneadmin".to_owned());
-
-            println!("{}", vm);
-
-            // retrieve first pair with "custom" key
-            let memory = vm.template().get_i64("MEMORY");
-            assert!(memory.is_ok());
-            assert_eq!(memory.unwrap(), 32);
-        }
-
-        destroy_vm(vm_controller)
     }
 
     #[test]
