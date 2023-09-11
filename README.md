@@ -39,7 +39,9 @@ For more, [see the architecture document](./architecture.md).
 
 ## TODOs
 
+- share methods between Resource and ResourceFromPool ?
 - be more verbose on thread safety
+- map state strings to integers
 - merge resource and template_builder ?
 - implement pool methods
 - fix all TODOs
