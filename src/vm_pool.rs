@@ -4,16 +4,13 @@ use std::fmt::Display;
 
 use xml_doc::{Document, Element};
 
-use crate::common::parameters::UpdateType;
-use crate::common::permissions::{Permissions, PermissionsBits};
-use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
-use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
+use crate::common::resource::ResourceGetter;
+use crate::common::resource_getters::{GetGroup, GetOwner};
 use crate::common::resource_pool::{build_pool, ResourcePool};
 use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::template_mut::TemplateMut;
-use crate::common::{Errors, Template};
+use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
-use crate::{rpc_chmod_method, vm};
+use crate::vm;
 
 #[derive(Debug)]
 pub struct VirtualMachinesController<'a, C: RPCCaller> {

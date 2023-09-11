@@ -28,7 +28,7 @@ impl TemplateBuilder {
     pub fn new() -> Self {
         let mut document = Document::new();
         let element = Element::new(&mut document, "TEMPLATE");
-        document.push_root_node(element.as_node());
+        let _ = document.push_root_node(element.as_node());
 
         TemplateBuilder { document, element }
     }
@@ -109,7 +109,7 @@ mod builder {
         tpl.put_str("tag1", "value2");
 
         // remove all elements
-        tpl.rm("tag1");
+        let _ = tpl.rm("tag1");
 
         let tag1 = tpl.get_str("tag1");
         print!("{:?}", tag1);
@@ -149,12 +149,12 @@ mod builder {
         let mut vec1 = vec1;
 
         // remove pair
-        vec1.rm("key");
+        let _ = vec1.rm("key");
         let pair1 = vec1.get_str("key");
         assert!(pair1.is_err());
 
         // remove vector
-        tpl.rm("vec1");
+        let _ = tpl.rm("vec1");
         let res = tpl.get_vector("vec1");
         assert!(res.is_err());
     }

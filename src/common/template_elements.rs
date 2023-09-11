@@ -56,7 +56,7 @@ impl Vector {
         }
     }
 
-    fn get_i64(&self, name: &str) -> Result<i64, Errors> {
+    pub fn get_i64(&self, name: &str) -> Result<i64, Errors> {
         let value_str = self.get_str(name)?;
 
         let v = value_str.parse()?;

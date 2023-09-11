@@ -8,7 +8,6 @@ use crate::common::parameters::UpdateType;
 use crate::common::permissions::{Permissions, PermissionsBits};
 use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
 use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
-use crate::common::resource_pool::{build_pool, ResourcePool};
 use crate::common::template_getters::TemplateCommonGetters;
 use crate::common::template_mut::TemplateMut;
 use crate::common::{Errors, Template};
@@ -39,14 +38,14 @@ pub struct VirtualMachine {
 
 // read only
 impl ResourceGetter for VirtualMachine {
-    fn get_internal(&self) -> (&xml_doc::Document, &xml_doc::Element) {
+    fn get_internal(&self) -> (&Document, &Element) {
         (&self.resource.document, &self.resource.root)
     }
 }
 
 // read-write
 impl ResourceGetterMut for VirtualMachine {
-    fn get_internal_mut(&mut self) -> (&mut xml_doc::Document, &mut xml_doc::Element) {
+    fn get_internal_mut(&mut self) -> (&mut Document, &mut Element) {
         (&mut self.resource.document, &mut self.resource.root)
     }
 }
