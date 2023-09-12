@@ -1,10 +1,8 @@
 use xml_doc::{Document, Element};
 
-use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::template_getters::TemplateGetter;
-
-use super::template_elements::Vector;
-use super::Errors;
+use crate::common::template::elements::Vector;
+use crate::common::xml::resource::XMLDocGetters;
+use crate::common::Errors;
 
 /// Allow to access and mutate the ressource template attributes
 pub struct TemplateMut<'a> {
@@ -18,17 +16,11 @@ impl<'a> TemplateMut<'a> {
     }
 }
 
-impl<'a> TemplateGetter<'a> for TemplateMut<'a> {
-    fn get_document(&self) -> &Document {
-        self.document
-    }
-
-    fn get_element(&self) -> &Element {
-        &self.element
+impl<'a> XMLDocGetters for TemplateMut<'a> {
+    fn get_internal(&self) -> (&Document, &Element) {
+        (self.document, &self.element)
     }
 }
-
-impl<'a> TemplateCommonGetters<'a> for TemplateMut<'a> {}
 
 impl<'a> TemplateMut<'a> {
     // TODO:

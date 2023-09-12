@@ -53,7 +53,7 @@ fn main() {
 
     // customize the user
     // we can build the template from scratch via a template builder
-    let mut tpl = TemplateBuilder::new();
+    let mut tpl = template::Builder::new();
 
     // OR we're able to update existing template
     //let mut template_mut = uinfos.template_mut();

@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+// TODO: more errors here ?
 #[derive(Debug)]
 pub enum Errors {
     Lexer(String),

@@ -2,17 +2,17 @@
 
 use std::fmt::Display;
 
-use xml_doc::{Document, Element};
-
 use crate::common::parameters::UpdateType;
 use crate::common::permissions::{Permissions, PermissionsBits};
-use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
-use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
-use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::template_mut::TemplateMut;
-use crate::common::{Errors, Template};
+use crate::common::resource_getters::{GetGroup, GetOwner, GetPermissions};
+use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 use crate::rpc_chmod_method;
+
+use crate::common::xml::shared_getters::BaseGetters;
+use crate::common::xml::template::Template;
+use crate::common::xml::template_mut::TemplateMut;
+use crate::{common::xml::resource::Resource, define_resource};
 
 #[derive(Debug)]
 pub struct VirtualMachineController<'a, C: RPCCaller> {
@@ -32,36 +32,14 @@ pub struct VMNICController<'a, C: RPCCaller> {
     pub id: i32,
 }
 
-pub struct VirtualMachine {
-    resource: Resource,
-}
-
-// read only
-impl ResourceGetter for VirtualMachine {
-    fn get_internal(&self) -> (&Document, &Element) {
-        (&self.resource.document, &self.resource.root)
-    }
-}
-
-// read-write
-impl ResourceGetterMut for VirtualMachine {
-    fn get_internal_mut(&mut self) -> (&mut Document, &mut Element) {
-        (&mut self.resource.document, &mut self.resource.root)
-    }
-}
+define_resource!(VirtualMachine);
 
 impl GetGroup for VirtualMachine {}
 impl GetOwner for VirtualMachine {}
 impl GetPermissions for VirtualMachine {}
 
-impl Display for VirtualMachine {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.resource.document.write_str().unwrap())
-    }
-}
-
 // Shared behavior between VirtualMachine and VirtualMachinePool
-pub trait VMShared: ResourceGetter {
+pub trait VMShared: XMLDocGetters {
     /// Allow to retrieve the user template section of the VM
     fn user_template(&self) -> Template {
         let (document, element) = self.get_internal();
@@ -269,7 +247,7 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
     /// Adds VM content
     /// * vm_tpl: The new vm contents. Syntax can be the usual attribute=value or XML.
     /// * policy: Update type: 0: Replace the whole template. 1: Merge new template with the existing one.
-    pub fn update<T: TemplateCommonGetters<'a> + Display>(
+    pub fn update<T: BaseGetters + Display>(
         &self,
         vm_tpl: T,
         policy: UpdateType,
@@ -288,10 +266,7 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
 
     /// Udates (appends) a set of supported configuration attributes in
     /// the VM template
-    pub fn update_conf<T: TemplateCommonGetters<'a> + Display>(
-        &self,
-        vm_tpl: T,
-    ) -> Result<(), Errors> {
+    pub fn update_conf<T: BaseGetters + Display>(&self, vm_tpl: T) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.vm.updateconf",
             vec![self.id.into(), vm_tpl.to_string().into()],
@@ -347,10 +322,7 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
     }
 
     /// adds a new scheduled action to the VM
-    pub fn sched_add<T: TemplateCommonGetters<'a> + Display>(
-        &self,
-        action_tpl: T,
-    ) -> Result<(), Errors> {
+    pub fn sched_add<T: BaseGetters + Display>(&self, action_tpl: T) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.vm.schedadd",
             vec![self.id.into(), action_tpl.to_string().into()],
@@ -360,10 +332,7 @@ impl<'a, C: RPCCaller> VirtualMachineController<'a, C> {
     }
 
     /// Updates the scheduled action specified by the action ID attribute
-    pub fn sched_update<T: TemplateCommonGetters<'a> + Display + 'a>(
-        &self,
-        action_tpl: T,
-    ) -> Result<(), Errors> {
+    pub fn sched_update<T: BaseGetters + Display + 'a>(&self, action_tpl: T) -> Result<(), Errors> {
         let action_id = action_tpl.get_i64("ID")?;
 
         let resp_txt = self.controller.client.call(
@@ -429,7 +398,7 @@ impl<'a, C: RPCCaller> VMNICController<'a, C> {
     /// Updates (appends) a NIC attributes
     /// * nic_tpl: The new nic contents. Syntax can be the usual attribute=value or XML.
     /// * policy: Update type: 0: Replace the whole NIC. 1: Merge new NIC with the existing one.
-    pub fn update<T: TemplateCommonGetters<'a> + Display>(
+    pub fn update<T: BaseGetters + Display>(
         &self,
         nic_tpl: T,
         policy: UpdateType,
@@ -568,7 +537,7 @@ mod test {
     };
 
     fn create_vm(controller: &Controller<ClientXMLRPC>, name: &str) -> i32 {
-        let mut tpl = TemplateBuilder::new();
+        let mut tpl = template::Builder::new();
         tpl.put_str("NAME", name);
         tpl.put_str("CPU", "1");
         tpl.put_str("MEMORY", "32");
@@ -628,24 +597,26 @@ mod test {
                 assert_eq!(infos.gid().unwrap(), 0);
 
                 assert!(infos.groupname().is_ok());
-                assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
+                assert_eq!(infos.groupname().unwrap(), "oneadmin");
 
                 let perms = infos.permissions();
                 assert!(perms.is_ok());
                 assert_eq!(perms.unwrap().to_string(), "uma--auma");
 
                 // retrieve first pair with "custom" key
-                let custom_key: Result<String, Errors> = infos.user_template().get_str("CUSTOM");
+                let user_tpl = infos.user_template();
+                let custom_key = user_tpl.get_str("CUSTOM");
                 println!("custom key: {:?}", custom_key);
                 assert!(custom_key.is_ok());
-                assert_eq!(custom_key.unwrap(), "test".to_owned());
+                assert_eq!(custom_key.unwrap(), "test");
 
                 // modify the template content
                 let mut infos = infos;
                 let res = infos.user_template_mut().rm("CUSTOM");
                 assert!(res.is_ok());
 
-                let custom_key = infos.template().get_str("CUSTOM");
+                let tpl = infos.template();
+                let custom_key = tpl.get_str("CUSTOM");
                 assert!(custom_key.is_err());
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),

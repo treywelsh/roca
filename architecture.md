@@ -18,15 +18,15 @@ struct User {
 Now our goal is to expose the generics methods from `Resource` directly on `User` without making "resource" field public.
 In Rust to share behavior we use traits.
 
-So now we want to use a trait (we name it `CommonGetters`) with default methods (named identically `id`, `name`... and calling `Resource` methods internally) that we want to be implemented by `User`.
+So now we want to use a trait (we name it `ResourceGetters`) with default methods (named identically `id`, `name`... and calling `Resource` methods internally) that we want to be implemented by `User`.
 
-But there's still a problem, how could `CommonGetters` knows and access the `User` resource field ?
+But there's still a problem, how could `ResourceGetters` knows and access the `User` resource field ?
 A trait is neither able to store datas, nor to suppose the fields names of a struct, but, a trait is able to depends on another trait defining some getters methods.
 
-To solve this we define an other trait named `ResourceGetter` defining some getters methods allowing to retrieve the resource field from `User` struct.
-Then we make `CommonGetters` depends on it.
+To solve this we define an other trait named `XMLDocGetter` defining some getters methods allowing to retrieve the resource field from `User` struct.
+Then we make `ResourceGetters` depends on it.
 
-And last, we use a blanket implementation to automate the implemation of `CommonGetters` when `ResourceGetter` is defined by a struct.
+And last, we use a blanket implementation to automate the implemation of `ResourceGetters` when `XMLDocGetter` is defined by a struct.
 
 
 ## XML crates note

@@ -1,19 +1,16 @@
 use std::fmt::Display;
 
+use crate::common::template::elements::Pair;
 use xml_doc::{Document, Element};
 
-use crate::common::template_elements::Pair;
-use crate::common::template_getters::TemplateCommonGetters;
-use crate::common::template_getters::TemplateGetter;
-
-//use crate::common::template_getters::TemplateGetter;
+use crate::common::xml::resource::XMLDocGetters;
 
 // there's a lifetime because we inherit of a reference
 // to the document, coming from the resource structure
 /// Allow to access the resource template attributes
 pub struct Template<'a> {
-    pub document: &'a Document, // it's ok when reading only, but what about writing ?
-    pub element: Element,
+    document: &'a Document, // it's ok when reading only, but what about writing ?
+    element: Element,
 }
 
 // TODO: add methods:
@@ -30,17 +27,11 @@ impl<'a> Template<'a> {
     }
 }
 
-impl<'a> TemplateGetter<'a> for Template<'a> {
-    fn get_document(&self) -> &Document {
-        self.document
-    }
-
-    fn get_element(&self) -> &Element {
-        &self.element
+impl<'a> XMLDocGetters for Template<'a> {
+    fn get_internal(&self) -> (&Document, &Element) {
+        (self.document, &self.element)
     }
 }
-
-impl<'a> TemplateCommonGetters<'a> for Template<'a> {}
 
 impl<'a> Display for Template<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

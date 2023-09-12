@@ -14,10 +14,13 @@ pub mod vm_pool;
 pub mod prelude {
     pub use crate::client::ClientXMLRPC;
     pub use crate::common::parameters;
-    pub use crate::common::resource::{Resource, ResourceGetter};
-    pub use crate::common::resource_getters::{CommonGetters, GetGroup, GetOwner, GetPermissions};
-    pub use crate::common::template_builder::TemplateBuilder;
-    pub use crate::common::template_elements::Vector;
-    pub use crate::common::template_getters::TemplateCommonGetters;
+    pub use crate::common::resource_getters::{
+        GetGroup, GetOwner, GetPermissions, ResourceGetters,
+    };
+    pub use crate::common::template::builder as template;
+    pub use crate::common::template::elements::Vector;
     pub use crate::controller::Controller;
+
+    pub use crate::common::xml::resource::Resource;
+    pub use crate::common::xml::shared_getters::BaseGetters;
 }

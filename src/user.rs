@@ -3,14 +3,13 @@
 use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
-use crate::common::resource::{Resource, ResourceGetter, ResourceGetterMut};
-use crate::common::resource_getters::{CommonGetters, GetGroup};
-use crate::common::template_getters::TemplateCommonGetters;
+use crate::common::resource_getters::{Get, GetGroup};
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
+use crate::{define_resource, rpc_noparam_method};
 
-// TODO: remove this /
-use crate::rpc_noparam_method;
+use crate::common::xml::resource::Resource;
+use crate::common::xml::shared_getters::BaseGetters;
 
 #[derive(Debug)]
 pub struct UserController<'a, C: RPCCaller> {
@@ -23,32 +22,9 @@ pub struct UsersController<'a, C: RPCCaller> {
     pub controller: &'a Controller<C>,
 }
 
-pub struct User {
-    resource: Resource,
-}
-
-// read only
-impl ResourceGetter for User {
-    fn get_internal(&self) -> (&xml_doc::Document, &xml_doc::Element) {
-        (&self.resource.document, &self.resource.root)
-    }
-}
-
-// read-write
-// read-write
-impl ResourceGetterMut for User {
-    fn get_internal_mut(&mut self) -> (&mut xml_doc::Document, &mut xml_doc::Element) {
-        (&mut self.resource.document, &mut self.resource.root)
-    }
-}
+define_resource!(User);
 
 impl GetGroup for User {}
-
-impl Display for User {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.resource.document.write_str().unwrap())
-    }
-}
 
 //https://docs.opennebula.io/6.4/installation_and_configuration/authentication/overview.html
 // or look at the opennebula terraform provider code
@@ -103,11 +79,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     /// Updates adds user content
     /// * tpl: The new user contents. Syntax can be the usual attribute=value or XML.
     /// * policy: Update type: 0: Replace the whole template. 1: Merge new template with the existing one.
-    pub fn update<T: TemplateCommonGetters<'a> + Display>(
-        &self,
-        tpl: T,
-        policy: UpdateType,
-    ) -> Result<(), Errors> {
+    pub fn update<T: Get + Display>(&self, tpl: T, policy: UpdateType) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.user.update",
             vec![
@@ -162,16 +134,16 @@ mod test {
                 assert_eq!(infos.id().unwrap(), 0);
 
                 assert!(infos.name().is_ok());
-                assert_eq!(infos.name().unwrap(), "oneadmin".to_owned());
+                assert_eq!(infos.name().unwrap(), "oneadmin");
 
                 assert!(infos.gid().is_ok());
                 assert_eq!(infos.gid().unwrap(), 0);
 
                 assert!(infos.groupname().is_ok());
-                assert_eq!(infos.groupname().unwrap(), "oneadmin".to_owned());
+                assert_eq!(infos.groupname().unwrap(), "oneadmin");
 
                 assert!(infos.get_str("AUTH_DRIVER").is_ok());
-                assert_eq!(infos.get_str("AUTH_DRIVER").unwrap(), "core".to_owned());
+                assert_eq!(infos.get_str("AUTH_DRIVER").unwrap(), "core");
             }
             Err(e) => panic!("Error on user info: {}", e),
         }

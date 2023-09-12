@@ -1,43 +1,32 @@
-use xml_doc::{Document, Element};
-
 use crate::common::errors::Errors;
-use crate::common::resource::{ResourceGetter, ResourceGetterMut};
-
 use crate::common::permissions::{Permissions, PermissionsBits};
-use crate::common::template::Template;
-use crate::common::template_mut::TemplateMut;
+
+use crate::common::template::elements::Vector;
+
+use crate::common::xml::permissions::get_field;
+use crate::common::xml::resource::{XMLDocGetters, XMLDocGettersMut};
+use crate::common::xml::shared_getters::BaseGetters;
+use crate::common::xml::template::Template;
+use crate::common::xml::template_mut::TemplateMut;
+
+pub trait Get {
+    fn get_str(&self, key: &str) -> Result<String, Errors>;
+    fn get_i64(&self, key: &str) -> Result<i64, Errors>;
+    fn get_vector(&self, key: &str) -> Result<Vector, Errors>;
+    //fn get_vectors(&self, key: &str) -> Result<Vec<Vector>, Errors>;
+}
 
 // blanket implementation
-impl<T> CommonGetters for T where T: ResourceGetter {}
-impl<T> CommonGettersMut for T where T: ResourceGetterMut {}
+impl<T> ResourceGettersMut for T where T: XMLDocGettersMut {}
 
-// TODO: rename ?
-pub trait CommonGetters: ResourceGetter {
+/// Add default getters to retrieve generic resource attributes
+pub trait ResourceGetters: BaseGetters {
     fn id(&self) -> Result<i64, Errors> {
         self.get_i64("ID")
     }
 
     fn name(&self) -> Result<String, Errors> {
         self.get_str("NAME")
-    }
-
-    fn get_str(&self, name: &str) -> Result<String, Errors> {
-        let (document, element) = self.get_internal();
-        let found = match element.find(document, name) {
-            Some(e) => e,
-            None => return Err(Errors::NotFound(name.to_string())),
-        };
-        if found.children(document).len() > 1 {
-            Err(Errors::HasChilds(name.to_string()))
-        } else {
-            Ok(found.text_content(document))
-        }
-    }
-
-    fn get_i64(&self, name: &str) -> Result<i64, Errors> {
-        let i_str = self.get_str(name)?;
-
-        Ok(i_str.parse::<i64>()?)
     }
 
     fn template(&self) -> Template {
@@ -48,8 +37,8 @@ pub trait CommonGetters: ResourceGetter {
         Template::from_resource(document, template)
     }
 }
-
-pub trait CommonGettersMut: ResourceGetterMut {
+/// Add default methods to allow modifying dynamic XML content
+pub trait ResourceGettersMut: XMLDocGettersMut {
     fn template_mut(&mut self) -> TemplateMut {
         let (document, element) = self.get_internal_mut();
         let template = element.find(document, "TEMPLATE").unwrap();
@@ -58,16 +47,18 @@ pub trait CommonGettersMut: ResourceGetterMut {
     }
 }
 
-pub trait GetOwner: CommonGetters {
-    fn uid(&self) -> Result<String, Errors> {
-        self.get_str("UID")
+/// Add user attributes getters
+pub trait GetOwner: ResourceGetters {
+    fn uid(&self) -> Result<i64, Errors> {
+        self.get_i64("UID")
     }
     fn username(&self) -> Result<String, Errors> {
         self.get_str("UNAME")
     }
 }
 
-pub trait GetGroup: CommonGetters {
+// Add group attributes getters
+pub trait GetGroup: ResourceGetters {
     fn gid(&self) -> Result<i64, Errors> {
         self.get_i64("GID")
     }
@@ -76,36 +67,23 @@ pub trait GetGroup: CommonGetters {
     }
 }
 
-pub trait GetPermissions: ResourceGetter {
+// Add permission attribute getters
+pub trait GetPermissions: XMLDocGetters {
     fn permissions(&self) -> Result<Permissions, Errors> {
         let (document, element) = self.get_internal();
 
         let permissions = element.find(document, "PERMISSIONS").unwrap();
 
-        let uu = get_perm_field(document, permissions, "OWNER_U")?;
-        let um = get_perm_field(document, permissions, "OWNER_M")?;
-        let ua = get_perm_field(document, permissions, "OWNER_A")?;
-        let gu = get_perm_field(document, permissions, "GROUP_U")?;
-        let gm = get_perm_field(document, permissions, "GROUP_M")?;
-        let ga = get_perm_field(document, permissions, "GROUP_A")?;
-        let ou = get_perm_field(document, permissions, "OTHER_U")?;
-        let om = get_perm_field(document, permissions, "OTHER_M")?;
-        let oa = get_perm_field(document, permissions, "OTHER_A")?;
+        let uu = get_field(document, permissions, "OWNER_U")?;
+        let um = get_field(document, permissions, "OWNER_M")?;
+        let ua = get_field(document, permissions, "OWNER_A")?;
+        let gu = get_field(document, permissions, "GROUP_U")?;
+        let gm = get_field(document, permissions, "GROUP_M")?;
+        let ga = get_field(document, permissions, "GROUP_A")?;
+        let ou = get_field(document, permissions, "OTHER_U")?;
+        let om = get_field(document, permissions, "OTHER_M")?;
+        let oa = get_field(document, permissions, "OTHER_A")?;
 
         Ok(PermissionsBits(uu, um, ua, gu, gm, ga, ou, om, oa).into())
-    }
-}
-
-fn get_perm_field(document: &Document, perm_elem: Element, name: &str) -> Result<u8, Errors> {
-    let perm_field = match perm_elem.find(document, name) {
-        Some(e) => e,
-        None => return Err(Errors::NotFound(name.to_string())),
-    };
-
-    // this pair is not expected to have a childs
-    if perm_field.children(document).len() > 1 {
-        Err(Errors::HasChilds(name.to_string()))
-    } else {
-        Ok(perm_field.text_content(document).parse::<u8>()?)
     }
 }

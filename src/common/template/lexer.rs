@@ -1,6 +1,6 @@
 use std::str::Chars;
 
-use crate::common::template_fmt::token::Tokens;
+use crate::common::template::token::Tokens;
 
 // lex file:
 // https://github.com/OpenNebula/one/blob/master/src/parsers/expr_parser.l
@@ -160,7 +160,7 @@ impl<'a> Lexer<'a> {
 #[cfg(test)]
 mod lexer_test {
 
-    use crate::common::template_fmt::{lexer::Lexer, token::Tokens};
+    use crate::common::template::{lexer::Lexer, token::Tokens};
 
     #[test]
     fn generate_token_complex() {

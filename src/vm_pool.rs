@@ -4,13 +4,14 @@ use std::fmt::Display;
 
 use xml_doc::{Document, Element};
 
-use crate::common::resource::ResourceGetter;
-use crate::common::resource_getters::{GetGroup, GetOwner};
-use crate::common::resource_pool::{build_pool, ResourcePool};
-use crate::common::template_getters::TemplateCommonGetters;
+use crate::common::resource_getters::{GetGroup, GetOwner, ResourceGetters};
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 use crate::vm;
+
+use crate::common::resource_getters::Get;
+use crate::common::xml::resource::XMLDocGetters;
+use crate::common::xml::resource_pool::{build_pool, ResourcePool};
 
 #[derive(Debug)]
 pub struct VirtualMachinesController<'a, C: RPCCaller> {
@@ -21,12 +22,13 @@ pub struct VirtualMachinePool {
     resource: ResourcePool,
 }
 
-impl ResourceGetter for VirtualMachinePool {
+impl XMLDocGetters for VirtualMachinePool {
     fn get_internal(&self) -> (&Document, &Element) {
         (&self.resource.document, &self.resource.root)
     }
 }
 
+impl ResourceGetters for VirtualMachinePool {}
 impl GetGroup for VirtualMachinePool {}
 impl GetOwner for VirtualMachinePool {}
 
@@ -39,11 +41,7 @@ impl Display for VirtualMachinePool {
 impl vm::VMShared for VirtualMachinePool {}
 
 impl<'a, C: RPCCaller> VirtualMachinesController<'a, C> {
-    pub fn allocate<T: TemplateCommonGetters<'a> + Display>(
-        &self,
-        template: T,
-        pending: bool,
-    ) -> Result<i32, Errors> {
+    pub fn allocate<T: Get + Display>(&self, template: T, pending: bool) -> Result<i32, Errors> {
         let resp_txt = self.controller.client.call(
             "one.vm.allocate",
             vec![template.to_string().into(), pending.into()],
@@ -104,7 +102,7 @@ mod test {
     use crate::vm::{Action, VirtualMachineController};
 
     fn create_vm(controller: &Controller<ClientXMLRPC>, name: &str) -> i32 {
-        let mut tpl = TemplateBuilder::new();
+        let mut tpl = template::Builder::new();
         tpl.put_str("NAME", name);
         tpl.put_str("CPU", "1");
         tpl.put_str("MEMORY", "32");
@@ -164,7 +162,7 @@ mod test {
             assert_eq!(vm.gid().unwrap(), 0);
 
             assert!(vm.groupname().is_ok());
-            assert_eq!(vm.groupname().unwrap(), "oneadmin".to_owned());
+            assert_eq!(vm.groupname().unwrap(), "oneadmin");
 
             println!("{}", vm);
 

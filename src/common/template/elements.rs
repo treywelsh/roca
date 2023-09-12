@@ -1,10 +1,10 @@
 use std::fmt::Display;
 
-use super::Errors;
+use crate::common::errors::Errors;
 
 /// Pair is a developer friendly representation of a key, value pair
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pair(pub String, pub String);
 
 impl Pair {
@@ -32,7 +32,7 @@ impl Display for Pair {
 }
 
 /// Vector is a developer friendly representation of a collection of attributes
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vector(pub String, pub Vec<Pair>);
 
 impl Vector {

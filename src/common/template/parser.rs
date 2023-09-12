@@ -1,8 +1,8 @@
-use crate::common::template_builder::TemplateBuilder;
-use crate::common::template_elements::Vector;
-use crate::common::template_fmt::errors::Errors;
-use crate::common::template_fmt::lexer::Lexer;
-use crate::common::template_fmt::token::Tokens;
+use crate::common::template::builder::Builder;
+use crate::common::template::elements::Vector;
+use crate::common::template::errors::Errors;
+use crate::common::template::lexer::Lexer;
+use crate::common::template::token::Tokens;
 
 // syntax: https://github.com/OpenNebula/one/blob/2eb07ee1c16140f1aca4d778b2cc2d38ea291159/src/parsers/template_syntax.y
 
@@ -22,8 +22,8 @@ impl<'a> Parser<'a> {
         self.token = self.lexer.next_token();
     }
 
-    pub fn parse(&mut self) -> Result<TemplateBuilder, Errors> {
-        let mut template = TemplateBuilder::new();
+    pub fn parse(&mut self) -> Result<Builder, Errors> {
+        let mut template = Builder::new();
         loop {
             let key = match self.token.clone() {
                 Tokens::Ident(i) => i,
@@ -139,9 +139,8 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod parser_test {
 
-    use crate::common::template_getters::TemplateCommonGetters;
-
-    use super::Parser;
+    use crate::common::resource_getters::Get;
+    use crate::common::template::parser::Parser;
 
     #[test]
     fn generate_template_complex() {
@@ -161,6 +160,8 @@ GROUP_ADMIN_DEFAULT_VIEW="groupadmin",
         );
 
         let template = parser.parse();
+        println!("parse result: {:?}", template);
+
         assert!(template.is_ok());
         let template = template.unwrap();
         println!("parse result: {}", template);

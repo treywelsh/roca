@@ -25,9 +25,9 @@ sudo apt install libssl-dev
 
 1. Create a struct with the name of the resource (like `User`), and 
    add a `Resource` type field inside.
-2. implement trait `ResourceGetter` and define it's methods.
-   Then `CommonGetters` trait with blanket implementation will be implemented automatically.
-   It provides some generic methods (`id`, `name`, `get_str`, ...).
+2. implement trait `XMLDocGetter` for the struct and define it's methods.
+   Then `BaseGetters` trait will be implemented automatically (blanket impl).
+   It provides some generic methods (`get_str`, `get_vector` ...).
 3. Add more attributes getters in implementing traits with default methods, for instance: 
    `impl GetGroup for XXX {}` and
    `impl GetOwner for XXX {}`
