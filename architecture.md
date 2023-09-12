@@ -23,10 +23,10 @@ So now we want to use a trait (we name it `ResourceGetters`) with default method
 But there's still a problem, how could `ResourceGetters` knows and access the `User` resource field ?
 A trait is neither able to store datas, nor to suppose the fields names of a struct, but, a trait is able to depends on another trait defining some getters methods.
 
-To solve this we define an other trait named `XMLDocGetter` defining some getters methods allowing to retrieve the resource field from `User` struct.
+To solve this we define an other trait named `XMLDocGetters` defining some getters methods allowing to retrieve the resource field from `User` struct.
 Then we make `ResourceGetters` depends on it.
 
-And last, we use a blanket implementation to automate the implemation of `ResourceGetters` when `XMLDocGetter` is defined by a struct.
+And last, we use a blanket implementation to automate the implemation of `ResourceGetters` when `XMLDocGetters` is defined by a struct.
 
 
 ## XML crates note

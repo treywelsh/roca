@@ -1,5 +1,7 @@
 # roca
 
+EXPERIMENT UNDER HEAVY REFACTORING
+
 Rust binding for OpenNebula API
 
 Early POC inspired of:
@@ -25,7 +27,7 @@ sudo apt install libssl-dev
 
 1. Create a struct with the name of the resource (like `User`), and 
    add a `Resource` type field inside.
-2. implement trait `XMLDocGetter` for the struct and define it's methods.
+2. implement trait `XMLDocGetters` for the struct and define it's methods.
    Then `BaseGetters` trait will be implemented automatically (blanket impl).
    It provides some generic methods (`get_str`, `get_vector` ...).
 3. Add more attributes getters in implementing traits with default methods, for instance: 
@@ -39,11 +41,13 @@ For more, [see the architecture document](./architecture.md).
 
 ## TODOs
 
+- is it enough to identify a template (?): BaseGetters + Display
+- UPDATE README AND ARCHITECTURE
 - share methods between Resource and ResourceFromPool ?
 - be more verbose on thread safety
 - map state strings to integers
 - merge resource and template_builder ?
-- implement pool methods
+- implement pool methods, and manage parameters (-1, -1...)
 - fix all TODOs
 - allow to parse OpenNebula specific template format
 - improve tests, increase coverage
