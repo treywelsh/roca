@@ -11,7 +11,6 @@ use crate::rpc_chmod_method;
 
 use crate::common::xml::shared_getters::BaseGetters;
 use crate::common::xml::template::Template;
-use crate::common::xml::template_mut::TemplateMut;
 use crate::{common::xml::resource::Resource, define_resource};
 
 #[derive(Debug)]
@@ -56,17 +55,6 @@ pub trait VMShared: XMLDocGetters {
 }
 
 impl VMShared for VirtualMachine {}
-
-// Implement VM specific methods
-impl VirtualMachine {
-    /// Allow to retrieve the mutable user template section of the VM
-    pub fn user_template_mut(&mut self) -> TemplateMut {
-        let (document, element) = self.get_internal_mut();
-        let template = element.find(&document, "USER_TEMPLATE").unwrap();
-
-        TemplateMut::from_resource(document, template)
-    }
-}
 
 pub enum Action {
     Terminate,
@@ -611,12 +599,12 @@ mod test {
                 assert_eq!(custom_key.unwrap(), "test");
 
                 // modify the template content
-                let mut infos = infos;
-                let res = infos.user_template_mut().rm("CUSTOM");
-                assert!(res.is_ok());
+                let infos = infos;
+                let mut builder: template::Builder = infos.user_template().into();
+                assert!(builder.rm("CUSTOM").is_ok());
 
-                let tpl = infos.template();
-                let custom_key = tpl.get("CUSTOM");
+                //let tpl = infos.user_template();
+                let custom_key = builder.get("CUSTOM");
                 assert!(custom_key.is_err());
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),

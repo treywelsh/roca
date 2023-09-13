@@ -8,7 +8,7 @@ macro_rules! define_resource {
     ($resource_name:ident) => {
         use xml_doc::{Document, Element};
         use $crate::common::resource_getters::ResourceGetters;
-        use $crate::common::xml::resource::{XMLDocGetters, XMLDocGettersMut};
+        use $crate::common::xml::resource::XMLDocGetters;
 
         pub struct $resource_name {
             resource: Resource,
@@ -18,13 +18,6 @@ macro_rules! define_resource {
         impl XMLDocGetters for $resource_name {
             fn get_internal(&self) -> (&Document, &Element) {
                 (&self.resource.document, &self.resource.root)
-            }
-        }
-
-        // read-write
-        impl XMLDocGettersMut for $resource_name {
-            fn get_internal_mut(&mut self) -> (&mut Document, &mut Element) {
-                (&mut self.resource.document, &mut self.resource.root)
             }
         }
 
@@ -42,10 +35,6 @@ macro_rules! define_resource {
 /// defined by BaseGetters trait
 pub trait XMLDocGetters {
     fn get_internal(&self) -> (&Document, &Element);
-}
-
-pub trait XMLDocGettersMut {
-    fn get_internal_mut(&mut self) -> (&mut Document, &mut Element);
 }
 
 // IS IT STILL USEFUL ?

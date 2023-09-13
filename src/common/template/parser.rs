@@ -138,8 +138,6 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod parser_test {
-
-    use crate::common::resource_getters::Get;
     use crate::common::template::parser::Parser;
 
     #[test]

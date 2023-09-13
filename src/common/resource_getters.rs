@@ -1,21 +1,10 @@
 use crate::common::errors::Errors;
 use crate::common::permissions::{Permissions, PermissionsBits};
 
-use crate::common::template::elements::Vector;
-
 use crate::common::xml::permissions::get_field;
-use crate::common::xml::resource::{XMLDocGetters, XMLDocGettersMut};
+use crate::common::xml::resource::XMLDocGetters;
 use crate::common::xml::shared_getters::BaseGetters;
 use crate::common::xml::template::Template;
-use crate::common::xml::template_mut::TemplateMut;
-
-pub trait Get {
-    fn get(&self, key: &str) -> Result<String, Errors>;
-    fn get_vector(&self, key: &str) -> Result<Vector, Errors>;
-}
-
-// blanket implementation
-impl<T> ResourceGettersMut for T where T: XMLDocGettersMut {}
 
 /// Add default getters to retrieve generic resource attributes
 pub trait ResourceGetters: BaseGetters {
@@ -33,15 +22,6 @@ pub trait ResourceGetters: BaseGetters {
         let template = element.find(document, "TEMPLATE").unwrap();
 
         Template::from_resource(document, template)
-    }
-}
-/// Add default methods to allow modifying dynamic XML content
-pub trait ResourceGettersMut: XMLDocGettersMut {
-    fn template_mut(&mut self) -> TemplateMut {
-        let (document, element) = self.get_internal_mut();
-        let template = element.find(document, "TEMPLATE").unwrap();
-
-        TemplateMut::from_resource(document, template)
     }
 }
 

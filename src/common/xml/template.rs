@@ -1,6 +1,12 @@
 use std::fmt::Display;
 
-use crate::common::{resource_getters::Get, template::elements::Pair};
+use crate::common::{
+    template::elements::Pair,
+    template::{
+        builder::{self, Builder},
+        elements::Vector,
+    },
+};
 use xml_doc::{Document, Element};
 
 use crate::common::xml::resource::XMLDocGetters;
@@ -22,8 +28,38 @@ impl<'a> Template<'a> {
     //    Template { document, element }
     //}
 
+    // TODO: replace by TryFrom ?
     pub fn from_resource(document: &'a Document, element: Element) -> Self {
         Template { document, element }
+    }
+}
+
+impl<'a> From<Template<'a>> for Builder {
+    fn from(template: Template<'a>) -> Self {
+        let mut builder = Builder::new();
+
+        for element in template.element.child_elements(template.document) {
+            let childs = element.child_elements(template.document);
+            if childs.is_empty() {
+                // it's a pair
+                builder.put_str(
+                    element.name(template.document),
+                    &element.text_content(template.document),
+                );
+            } else {
+                // it's a vector
+                let mut vec = Vector::new(element.name(template.document));
+                for sub_element in element.child_elements(template.document) {
+                    vec.1.push(Pair(
+                        sub_element.name(template.document).to_string(),
+                        sub_element.text_content(template.document),
+                    ));
+                }
+                builder.put_vector(vec);
+            }
+        }
+
+        builder
     }
 }
 
@@ -36,39 +72,5 @@ impl<'a> XMLDocGetters for Template<'a> {
 impl<'a> Display for Template<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.document.write_str().unwrap())
-    }
-}
-
-// implement trait from blanket implementation methods
-impl<'a> Get for Template<'a> {
-    fn get(&self, key: &str) -> Result<String, crate::common::Errors> {
-        crate::common::xml::shared_getters::BaseGetters::get(self, key)
-    }
-
-    fn get_vector(
-        &self,
-        key: &str,
-    ) -> Result<crate::common::template::elements::Vector, crate::common::Errors> {
-        crate::common::xml::shared_getters::BaseGetters::get_vector(self, key)
-    }
-}
-
-// TODO: allow to iter on pairs and vectors
-pub struct TemplatePairs {}
-
-impl<'a> IntoIterator for Template<'a> {
-    type Item = Pair;
-    type IntoIter = TemplatePairs;
-
-    fn into_iter(self) -> Self::IntoIter {
-        todo!()
-    }
-}
-
-impl Iterator for TemplatePairs {
-    type Item = Pair;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        todo!()
     }
 }

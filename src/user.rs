@@ -3,7 +3,8 @@
 use std::fmt::Display;
 
 use crate::common::parameters::UpdateType;
-use crate::common::resource_getters::{Get, GetGroup};
+use crate::common::resource_getters::GetGroup;
+use crate::common::template::builder as template;
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 use crate::{define_resource, rpc_noparam_method};
@@ -79,7 +80,7 @@ impl<'a, C: RPCCaller> UserController<'a, C> {
     /// Updates adds user content
     /// * tpl: The new user contents. Syntax can be the usual attribute=value or XML.
     /// * policy: Update type: 0: Replace the whole template. 1: Merge new template with the existing one.
-    pub fn update<T: Get + Display>(&self, tpl: T, policy: UpdateType) -> Result<(), Errors> {
+    pub fn update(&self, tpl: template::Builder, policy: UpdateType) -> Result<(), Errors> {
         let resp_txt = self.controller.client.call(
             "one.user.update",
             vec![

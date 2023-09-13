@@ -13,18 +13,6 @@ impl Pair {
     }
 }
 
-//impl AsRef<String> for Pair {
-//    fn as_ref(&self) -> &String {
-//        &format!("{}=\"{}\"", self.0, self.1)
-//    }
-//}
-//
-//impl Into<String> for Pair {
-//    fn into(self) -> String {
-//        format!("{}=\"{}\"", self.0, self.1)
-//    }
-//}
-
 impl Display for Pair {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}=\"{}\"", self.0, self.1)

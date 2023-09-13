@@ -3,7 +3,6 @@ use std::fmt::Display;
 use xml_doc::{Document, Element};
 
 use crate::common::errors::Errors;
-use crate::common::resource_getters::Get;
 use crate::common::template::elements::{Pair, Vector};
 
 // TODO:
@@ -20,19 +19,15 @@ pub struct Builder {
     vectors: Vec<Vector>,
 }
 
-impl Get for Builder {
-    fn get_vector(&self, key: &str) -> Result<Vector, Errors> {
-        for v in &self.vectors {
-            if v.0 == key {
-                return Ok((*v).clone());
-            }
+impl Builder {
+    pub fn new() -> Self {
+        Builder {
+            pairs: Vec::new(),
+            vectors: Vec::new(),
         }
-        Err(Errors::NotFound(
-            "template builder: element not found".to_string(),
-        ))
     }
 
-    fn get(&self, key: &str) -> Result<String, Errors> {
+    pub fn get(&self, key: &str) -> Result<String, Errors> {
         for p in &self.pairs {
             if p.0 == key {
                 return Ok(p.1.clone());
@@ -42,21 +37,23 @@ impl Get for Builder {
             "template builder: element not found".to_string(),
         ))
     }
-}
-
-impl Builder {
-    pub fn new() -> Self {
-        Builder {
-            pairs: Vec::new(),
-            vectors: Vec::new(),
-        }
-    }
 
     pub fn get_i64(&self, key: &str) -> Result<i64, Errors> {
         let value_str = self.get(key)?;
 
         let v = value_str.parse()?;
         Ok(v)
+    }
+
+    pub fn get_vector(&self, key: &str) -> Result<Vector, Errors> {
+        for v in &self.vectors {
+            if v.0 == key {
+                return Ok((*v).clone());
+            }
+        }
+        Err(Errors::NotFound(
+            "template builder: element not found".to_string(),
+        ))
     }
 
     pub fn put_str(&mut self, key: &str, value: &str) {
@@ -139,8 +136,6 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod test {
-
-    use crate::common::resource_getters::Get;
     use crate::common::template::builder::{Builder, Vector};
 
     #[test]

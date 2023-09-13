@@ -5,11 +5,11 @@ use std::fmt::Display;
 use xml_doc::{Document, Element};
 
 use crate::common::resource_getters::{GetGroup, GetOwner, ResourceGetters};
+use crate::common::template::builder as template;
 use crate::common::Errors;
 use crate::controller::{Controller, RPCCaller};
 use crate::vm;
 
-use crate::common::resource_getters::Get;
 use crate::common::xml::resource::XMLDocGetters;
 use crate::common::xml::resource_pool::{build_pool, ResourcePool};
 
@@ -41,7 +41,7 @@ impl Display for VirtualMachinePool {
 impl vm::VMShared for VirtualMachinePool {}
 
 impl<'a, C: RPCCaller> VirtualMachinesController<'a, C> {
-    pub fn allocate<T: Get + Display>(&self, template: T, pending: bool) -> Result<i32, Errors> {
+    pub fn allocate(&self, template: template::Builder, pending: bool) -> Result<i32, Errors> {
         let resp_txt = self.controller.client.call(
             "one.vm.allocate",
             vec![template.to_string().into(), pending.into()],
