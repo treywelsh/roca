@@ -6,7 +6,7 @@ use crate::common::template::token::Tokens;
 
 // syntax: https://github.com/OpenNebula/one/blob/2eb07ee1c16140f1aca4d778b2cc2d38ea291159/src/parsers/template_syntax.y
 
-struct Parser<'a> {
+pub struct Parser<'a> {
     lexer: Lexer<'a>,
     token: Tokens,
 }
