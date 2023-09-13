@@ -605,7 +605,7 @@ mod test {
 
                 // retrieve first pair with "custom" key
                 let user_tpl = infos.user_template();
-                let custom_key = user_tpl.get_str("CUSTOM");
+                let custom_key = user_tpl.get("CUSTOM");
                 println!("custom key: {:?}", custom_key);
                 assert!(custom_key.is_ok());
                 assert_eq!(custom_key.unwrap(), "test");
@@ -616,7 +616,7 @@ mod test {
                 assert!(res.is_ok());
 
                 let tpl = infos.template();
-                let custom_key = tpl.get_str("CUSTOM");
+                let custom_key = tpl.get("CUSTOM");
                 assert!(custom_key.is_err());
             }
             Err(e) => panic!("Error on virtual_machine info: {}", e),

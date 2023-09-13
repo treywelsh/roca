@@ -29,7 +29,7 @@ sudo apt install libssl-dev
    add a `Resource` type field inside.
 2. implement trait `XMLDocGetters` for the struct and define it's methods.
    Then `BaseGetters` trait will be implemented automatically (blanket impl).
-   It provides some generic methods (`get_str`, `get_vector` ...).
+   It provides some generic methods (`get`, `get_vector` ...).
 3. Add more attributes getters in implementing traits with default methods, for instance: 
    `impl GetGroup for XXX {}` and
    `impl GetOwner for XXX {}`

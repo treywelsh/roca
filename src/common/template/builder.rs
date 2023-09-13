@@ -32,7 +32,7 @@ impl Get for Builder {
         ))
     }
 
-    fn get_str(&self, key: &str) -> Result<String, Errors> {
+    fn get(&self, key: &str) -> Result<String, Errors> {
         for p in &self.pairs {
             if p.0 == key {
                 return Ok(p.1.clone());
@@ -42,13 +42,6 @@ impl Get for Builder {
             "template builder: element not found".to_string(),
         ))
     }
-
-    fn get_i64(&self, key: &str) -> Result<i64, Errors> {
-        let value_str = self.get_str(key)?;
-
-        let v = value_str.parse()?;
-        Ok(v)
-    }
 }
 
 impl Builder {
@@ -57,6 +50,13 @@ impl Builder {
             pairs: Vec::new(),
             vectors: Vec::new(),
         }
+    }
+
+    pub fn get_i64(&self, key: &str) -> Result<i64, Errors> {
+        let value_str = self.get(key)?;
+
+        let v = value_str.parse()?;
+        Ok(v)
     }
 
     pub fn put_str(&mut self, key: &str, value: &str) {
@@ -110,7 +110,19 @@ impl Builder {
         Ok(document.write_str()?)
     }
 
-    pub fn generate_onefmt(self) {}
+    pub fn generate_onefmt(&self) -> Result<String, Errors> {
+        todo!();
+        /*
+        let tpl_str = String::new();
+         for p in &self.pairs {}
+
+         for vec in &self.vectors {
+             for p in &vec.1 {}
+         }
+
+         Ok(String::new())
+         */
+    }
 }
 
 impl Display for Builder {
@@ -138,7 +150,7 @@ mod test {
         tpl.put_str("tag1", "value1");
         tpl.put_str("tag2", "value2");
 
-        let tag1 = tpl.get_str("tag1");
+        let tag1 = tpl.get("tag1");
 
         // retrieve first value
         assert!(tag1.is_ok());
@@ -155,12 +167,12 @@ mod test {
         // remove all elements
         let _ = tpl.rm("tag1");
 
-        let tag1 = tpl.get_str("tag1");
+        let tag1 = tpl.get("tag1");
         print!("{:?}", tag1);
         assert!(tag1.is_err());
 
         tpl.put_str("tag1", "value3");
-        let tag1 = tpl.get_str("tag1");
+        let tag1 = tpl.get("tag1");
         assert_eq!(tag1.unwrap(), "value3");
     }
 
@@ -182,11 +194,11 @@ mod test {
         let vec1 = res.unwrap();
 
         // retrieve pair from vector
-        let pair2 = vec1.get_str("key2");
+        let pair2 = vec1.get("key2");
         assert!(pair2.is_ok());
         assert_eq!(pair2.unwrap(), "value2");
 
-        let pair1 = vec1.get_str("key");
+        let pair1 = vec1.get("key");
         assert!(pair1.is_ok());
         assert_eq!(pair1.unwrap(), "value");
 
@@ -199,7 +211,7 @@ mod test {
 
         // remove pair
         let _ = vec1.rm("key");
-        let pair1 = vec1.get_str("key");
+        let pair1 = vec1.get("key");
         assert!(pair1.is_err());
 
         // remove vector

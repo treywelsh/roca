@@ -7,7 +7,7 @@ This lib:
 
 ## Share behavior among resources
 
-`Resource` is a struct providing some generic methods (`id`, `name`, `get_str`...) to retrieve informations from the XML content returned by XML-RPC methods of the OpenNebula API. This struct is then embedded in specialized structs that represents a resource (`VM`, `User`...)
+`Resource` is a struct providing some generic methods (`id`, `name`, `get`...) to retrieve informations from the XML content returned by XML-RPC methods of the OpenNebula API. This struct is then embedded in specialized structs that represents a resource (`VM`, `User`...)
 For instance:
 ```
 struct User {
@@ -28,6 +28,10 @@ Then we make `ResourceGetters` depends on it.
 
 And last, we use a blanket implementation to automate the implemation of `ResourceGetters` when `XMLDocGetters` is defined by a struct.
 
+
+## Traits
+
+- `Get` trait allow to define methods with a generic parameter to accept a dynamic document like a template (template, template mut, builder)
 
 ## XML crates note
 

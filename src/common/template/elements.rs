@@ -44,7 +44,7 @@ impl Vector {
         self.1.push(Pair::new(k, v))
     }
 
-    pub fn get_str<T: Into<String>>(&self, k: T) -> Result<&str, Errors> {
+    pub fn get<T: Into<String>>(&self, k: T) -> Result<&str, Errors> {
         let key = k.into();
         let pairs: Vec<&Pair> = self.1.iter().filter(|&p| p.0 == key).collect();
         if pairs.len() > 1 {
@@ -57,7 +57,7 @@ impl Vector {
     }
 
     pub fn get_i64(&self, name: &str) -> Result<i64, Errors> {
-        let value_str = self.get_str(name)?;
+        let value_str = self.get(name)?;
 
         let v = value_str.parse()?;
         Ok(v)

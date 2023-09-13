@@ -9,7 +9,7 @@ impl<T> BaseGetters for T where T: XMLDocGetters {}
 
 /// Add default getters to work with dynamic XML content
 pub trait BaseGetters: XMLDocGetters {
-    fn get_str(&self, key: &str) -> Result<String, Errors> {
+    fn get(&self, key: &str) -> Result<String, Errors> {
         let (document, element) = self.get_internal();
         let found = match element.find(document, key) {
             Some(e) => e,
@@ -24,7 +24,7 @@ pub trait BaseGetters: XMLDocGetters {
     }
 
     fn get_i64(&self, key: &str) -> Result<i64, Errors> {
-        let i_str = self.get_str(key)?;
+        let i_str = self.get(key)?;
 
         Ok(i_str.parse::<i64>()?)
     }

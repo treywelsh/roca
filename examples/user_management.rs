@@ -41,13 +41,13 @@ fn main() {
     println!("  GID: {}", uinfos.gid().unwrap());
     println!("  GNAME: {}", uinfos.groupname().unwrap());
     println!(
-        "  get_str on AUTH_DRIVER: {}",
-        uinfos.get_str("AUTH_DRIVER").unwrap()
+        "  get on AUTH_DRIVER: {}",
+        uinfos.get("AUTH_DRIVER").unwrap()
     );
     let template = uinfos.template();
     println!(
-        "  get_str on template TOKEN_PASSWORD: {}\n",
-        template.get_str("TOKEN_PASSWORD").unwrap()
+        "  get on template TOKEN_PASSWORD: {}\n",
+        template.get("TOKEN_PASSWORD").unwrap()
     );
     println!("Full User XML content: {}", uinfos);
 

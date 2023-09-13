@@ -142,8 +142,8 @@ mod test {
                 assert!(infos.groupname().is_ok());
                 assert_eq!(infos.groupname().unwrap(), "oneadmin");
 
-                assert!(infos.get_str("AUTH_DRIVER").is_ok());
-                assert_eq!(infos.get_str("AUTH_DRIVER").unwrap(), "core");
+                assert!(infos.get("AUTH_DRIVER").is_ok());
+                assert_eq!(infos.get("AUTH_DRIVER").unwrap(), "core");
             }
             Err(e) => panic!("Error on user info: {}", e),
         }

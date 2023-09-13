@@ -10,10 +10,8 @@ use crate::common::xml::template::Template;
 use crate::common::xml::template_mut::TemplateMut;
 
 pub trait Get {
-    fn get_str(&self, key: &str) -> Result<String, Errors>;
-    fn get_i64(&self, key: &str) -> Result<i64, Errors>;
+    fn get(&self, key: &str) -> Result<String, Errors>;
     fn get_vector(&self, key: &str) -> Result<Vector, Errors>;
-    //fn get_vectors(&self, key: &str) -> Result<Vec<Vector>, Errors>;
 }
 
 // blanket implementation
@@ -26,7 +24,7 @@ pub trait ResourceGetters: BaseGetters {
     }
 
     fn name(&self) -> Result<String, Errors> {
-        self.get_str("NAME")
+        self.get("NAME")
     }
 
     fn template(&self) -> Template {
@@ -53,7 +51,7 @@ pub trait GetOwner: ResourceGetters {
         self.get_i64("UID")
     }
     fn username(&self) -> Result<String, Errors> {
-        self.get_str("UNAME")
+        self.get("UNAME")
     }
 }
 
@@ -63,7 +61,7 @@ pub trait GetGroup: ResourceGetters {
         self.get_i64("GID")
     }
     fn groupname(&self) -> Result<String, Errors> {
-        self.get_str("GNAME")
+        self.get("GNAME")
     }
 }
 

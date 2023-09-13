@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::common::template::elements::Pair;
+use crate::common::{resource_getters::Get, template::elements::Pair};
 use xml_doc::{Document, Element};
 
 use crate::common::xml::resource::XMLDocGetters;
@@ -14,7 +14,7 @@ pub struct Template<'a> {
 }
 
 // TODO: add methods:
-// - get_strs (in case there is several pairs with the same key)
+// - gets (in case there is several pairs with the same key)
 // - get_i64s ?
 // - get_float64 (there is some CPU key with a floating type)
 impl<'a> Template<'a> {
@@ -36,6 +36,20 @@ impl<'a> XMLDocGetters for Template<'a> {
 impl<'a> Display for Template<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.document.write_str().unwrap())
+    }
+}
+
+// implement trait from blanket implementation methods
+impl<'a> Get for Template<'a> {
+    fn get(&self, key: &str) -> Result<String, crate::common::Errors> {
+        crate::common::xml::shared_getters::BaseGetters::get(self, key)
+    }
+
+    fn get_vector(
+        &self,
+        key: &str,
+    ) -> Result<crate::common::template::elements::Vector, crate::common::Errors> {
+        crate::common::xml::shared_getters::BaseGetters::get_vector(self, key)
     }
 }
 

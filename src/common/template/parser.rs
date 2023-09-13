@@ -165,15 +165,15 @@ GROUP_ADMIN_DEFAULT_VIEW="groupadmin",
         assert!(template.is_ok());
         let template = template.unwrap();
         println!("parse result: {}", template);
-        let name = template.get_str("name");
+        let name = template.get("name");
         assert!(name.is_ok());
         assert_eq!(name.unwrap(), "toto");
 
-        let p1 = template.get_str("p1");
+        let p1 = template.get("p1");
         assert!(p1.is_ok());
         assert_eq!(p1.unwrap(), "it's a\\\\nfirst string");
 
-        let p2 = template.get_str("p2");
+        let p2 = template.get("p2");
         assert!(p2.is_ok());
         assert_eq!(p2.unwrap(), "12");
 
@@ -181,27 +181,27 @@ GROUP_ADMIN_DEFAULT_VIEW="groupadmin",
         assert!(vec.is_ok());
         let vec = vec.unwrap();
 
-        let default_view = vec.get_str("DEFAULT_VIEW");
+        let default_view = vec.get("DEFAULT_VIEW");
         assert!(default_view.is_ok());
         assert_eq!(default_view.unwrap(), "cloud");
 
-        let group_admin_default_view = vec.get_str("GROUP_ADMIN_DEFAULT_VIEW");
+        let group_admin_default_view = vec.get("GROUP_ADMIN_DEFAULT_VIEW");
         assert!(group_admin_default_view.is_ok());
         assert_eq!(group_admin_default_view.unwrap(), "groupadmin");
 
-        let group_admin_views = vec.get_str("group_admin_views");
+        let group_admin_views = vec.get("group_admin_views");
         assert!(group_admin_views.is_ok());
         assert_eq!(group_admin_views.unwrap(), "\\\\\"12\\\\\"");
 
-        let views = vec.get_str("VIEWS");
+        let views = vec.get("VIEWS");
         assert!(views.is_ok());
         assert_eq!(views.unwrap(), "cloud");
 
-        let p3 = vec.get_str("p3");
+        let p3 = vec.get("p3");
         assert!(p3.is_ok());
         assert_eq!(p3.unwrap(), "v3");
 
-        let p4 = template.get_str("p4");
+        let p4 = template.get("p4");
         assert!(p4.is_ok());
         assert_eq!(p4.unwrap(), "v4");
     }
