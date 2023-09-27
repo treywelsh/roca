@@ -51,12 +51,18 @@ And last, we use a blanket implementation to automate the implemation of `Resour
 
 I tried a bunch of various XML crates to work with the partially dynamic XML. I didn't benchmark them, I only tried them to see how handy they are for my use case.
 
-- `quick-xml`: allow to read/write. would be a good choice but it's low level so it would require to take time to develop a wrapper to work at a higher level with the XML (note: it's already done by the generic lib `xml-doc`)
+Low level xml crates: `quick-xml`, `xml-rs`, `xmlparser`
+They're all pull parsers and `xmlparser` is read-only.
+However we need a parser working at a higher level than XML events.
+
+
+Some XML crates working at a higher level:
+
 - `xmltree`: allow to read/edit/write. from the crate doc: ```Not recommended for large XML files```
 - [serde-xml-rs](https://github.com/tafia/quick-xml/issues/526#issuecomment-1434576848): allow to read/write. serde could be a good choice as we already know a bunch of fields that we could add in a structure but I don't like the feeling with dynamic XML parts.
 - `sxd-path` and `sxd-document`: allow to read/write.
 - `xml-doc`: allow to read/edit/write. built on top of quick-xml provider higher level API. Seems a good compromise for Roca but not maintained anymore.
-- `roxmltree`: read only. Keep track of the input via a reference. Maybe the faster, but doesn't seems convenient to integrate with the API I have in mind (use a bunch wrapping struct). (https://stackoverflow.com/questions/76449289/returning-a-parsed-xml-node-from-a-function-in-rust)
+- `roxmltree`: read only, based on `xmlparser`. Keep track of the input via a reference. Maybe the faster, but doesn't seems convenient to integrate with the API I have in mind (use a bunch wrapping struct). (https://stackoverflow.com/questions/76449289/returning-a-parsed-xml-node-from-a-function-in-rust)
 
-At first I chose `sxd-path` and `sxd-document` crates, however I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
+At first I tried `sxd-path` and `sxd-document` crates, however I wasn't able to edit XML retrieved from OpenNebula and the code was more complex than with `xml-doc`, so I finally chose `xml-doc`.
 The code using sxd crate it available at `master_sxd_crate` repository branch.
