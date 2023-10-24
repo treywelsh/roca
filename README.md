@@ -25,35 +25,18 @@ sudo apt install libssl-dev
 
 ## How to implement a new resource
 
-1. Create a struct with the name of the resource (like `User`), and 
-   add a `Resource` type field inside.
-2. implement trait `XMLDocGetters` for the struct and define it's methods.
-   Then `BaseGetters` trait will be implemented automatically (blanket impl).
-   It provides some generic methods (`get`, `get_vector` ...).
-3. Add more attributes getters in implementing traits with default methods, for instance: 
+Let's suppose we're implementing the `User` resource:
+
+1. Add two sub-controllers structures (`UserController` and `UsersController`), then bind them to the main controller via a method for each (respectively `Users(id)` and `Users()`)
+   For the `User` resource, define a structure and basic methods via: `define_resource!(User);`. This will allow to work with the user structure returned by one of the `info` methods.
+2. Add more attributes getters in implementing traits with default methods, for instance: 
    `impl GetGroup for XXX {}` and
    `impl GetOwner for XXX {}`
    `impl GetPermissions for XXX {}`
    Previously check if they are required: for instance an `User` resource shouldn't implement `Owner` because it doesn't have `UID` and `UNAME` fields in it's XML representation.
+3. Implement resource methods binding them the right user controller. 
 
 
 For more, [see the architecture document](./architecture.md).
 
-## TODOs
 
-- is it enough to identify a template (?): BaseGetters + Display
-- UPDATE README AND ARCHITECTURE
-- share methods between Resource and ResourceFromPool ?
-- be more verbose on thread safety
-- map state strings to integers
-- merge resource and template_builder ?
-- implement pool methods, and manage parameters (-1, -1...)
-- fix all TODOs
-- allow to parse OpenNebula specific template format
-- improve tests, increase coverage
-- more code reuse for common resource methods like with delete, chmod
-- look for another XML-RPC crate ?
-  `serde_xmlrpc` lack a bit of flexibility when a method return type may vary regarding it's success:
-  a string type if it's an error, or an ID if it's successful
-  In `parse_id_resp` method of the controller we need to call response_from_str twice
-- implement iterators traits at least for resource pool
