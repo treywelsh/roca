@@ -57,21 +57,21 @@ mod test {
     #[test]
     fn one_client() {
         let client = ClientXMLRPC::new(
-            String::from("oneadmin:badpassword"),
-            String::from("http://localhost:2633/RPC2"),
+            String::from("oneadmin:pDi4mFBHue"),
+            String::from("http://192.168.33.10:2633/RPC2"),
         );
 
         let resp_txt = client.call("one.vn.info", vec![0.into()]).unwrap();
         let result = serde_xmlrpc::response_from_str::<(bool, String)>(&resp_txt);
 
-        assert_eq!(result.unwrap().0, false);
+        assert_eq!(result.unwrap().0, true);
     }
 
     #[test]
     fn one_rc() {
         let client = ClientXMLRPC::new(
-            String::from("oneadmin:opennebula"),
-            String::from("http://localhost:2633/RPC2"),
+            String::from("oneadmin:pDi4mFBHue"),
+            String::from("http://192.168.33.10:2633/RPC2"),
         );
 
         let resp_txt = client.call("one.user.info", vec![0.into()]).unwrap();
